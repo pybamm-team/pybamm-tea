@@ -204,22 +204,22 @@ class TEA():
         self.results["Negative current collector mass loading [mg.cm-2]"] = self.results.get("Negative current collector mass loading [mg.cm-2]") or self.results.get("Negative current collector volume loading [uL.cm-2]") * self.results.get("Negative current collector density [kg.m-3]") / 1000
         #print(self.results.get("Negative electrode active material true density [kg.m-3]"))
         #print(inputs.get("Negative electrode active material true density [kg.m-3]"))
-        if (inputs.get("Negative electrode active material true density [kg.m-3]") == None) and (self.results.get("Negative electrode active material true density [kg.m-3]") == None):
-                self.results["Negative electrode active material mass loading [mg.cm-2]"] = 0
-                print("Warning: Missing 'Negative electrode active material true density [kg.m-3]'")
-        elif self.parameter_values.get("Negative electrode active material volume fraction") + self.parameter_values.get("Negative electrode porosity") == 1:
+        if self.parameter_values.get("Negative electrode active material volume fraction") + self.parameter_values.get("Negative electrode porosity") == 1:
                 self.results["Negative electrode active material mass loading [mg.cm-2]"] = self.results.get("Negative electrode active material mass loading [mg.cm-2]") or self.results.get("Negative electrode active material volume loading [uL.cm-2]") * self.results.get("Negative electrode composite true density [kg.m-3]") / 1000
+        elif (inputs.get("Negative electrode active material true density [kg.m-3]") == None) and (self.results.get("Negative electrode active material true density [kg.m-3]") == None):
+                self.results["Negative electrode active material mass loading [mg.cm-2]"] = self.results["Negative electrode active material mass loading [mg.cm-2]"] or 0
+                print("Warning: Missing 'Negative electrode active material true density [kg.m-3]'")
         else:
                 self.results["Negative electrode active material mass loading [mg.cm-2]"] = self.results.get("Negative electrode active material mass loading [mg.cm-2]") or self.results.get("Negative electrode active material volume loading [uL.cm-2]") * (inputs.get("Negative electrode active material true density [kg.m-3]") or self.results.get("Negative electrode active material true density [kg.m-3]")) / 1000
         self.results["Negative electrode electrolyte mass loading [mg.cm-2]"] = self.results.get("Negative electrode electrolyte mass loading [mg.cm-2]") or self.results.get("Negative electrode electrolyte volume loading [uL.cm-2]") * self.results.get("Electrolyte density [kg.m-3]") / 1000
         self.results["Negative electrode inactive material mass loading [mg.cm-2]"] = self.results.get("Negative electrode inactive material mass loading [mg.cm-2]") or self.results.get("Negative electrode density [kg.m-3]") * self.results.get("Negative electrode thickness [m]") * 1000 - self.results.get("Negative electrode active material mass loading [mg.cm-2]")
         self.results["Separator mass loading [mg.cm-2]"] = self.results.get("Separator mass loading [mg.cm-2]") or self.results.get("Separator volume loading [uL.cm-2]") * self.results.get("Separator density [kg.m-3]") / 1000
         self.results["Separator electrolyte mass loading [mg.cm-2]"] = self.results.get("Separator electrolyte mass loading [mg.cm-2]") or self.results.get("Separator electrolyte volume loading [uL.cm-2]") * self.results.get("Electrolyte density [kg.m-3]") / 1000
-        if (inputs.get("Positive electrode active material true density [kg.m-3]") == None) and (self.results.get("Positive electrode active material true density [kg.m-3]") == None):
-                    self.results["Positive electrode active material mass loading [mg.cm-2]"] = 0
-                    print("Warning: Missing 'Positive electrode active material true density [kg.m-3]'")
-        elif self.parameter_values.get("Positive electrode active material volume fraction") + self.parameter_values.get("Positive electrode porosity") == 1:
+        if self.parameter_values.get("Positive electrode active material volume fraction") + self.parameter_values.get("Positive electrode porosity") == 1:
                     self.results["Positive electrode active material mass loading [mg.cm-2]"] = self.results.get("Positive electrode active material mass loading [mg.cm-2]") or self.results.get("Positive electrode active material volume loading [uL.cm-2]") * self.results.get("Positive electrode composite true density [kg.m-3]") / 1000
+        elif (inputs.get("Positive electrode active material true density [kg.m-3]") == None) and (self.results.get("Positive electrode active material true density [kg.m-3]") == None):
+                    self.results["Positive electrode active material mass loading [mg.cm-2]"] = self.results["Positive electrode active material mass loading [mg.cm-2]"] or 0
+                    print("Warning: Missing 'Positive electrode active material true density [kg.m-3]'")
         else:
                     self.results["Positive electrode active material mass loading [mg.cm-2]"] = self.results.get("Positive electrode active material mass loading [mg.cm-2]") or self.results.get("Positive electrode active material volume loading [uL.cm-2]") * (inputs.get("Positive electrode active material true density [kg.m-3]") or self.results.get("Positive electrode active material true density [kg.m-3]")) / 1000
         self.results["Positive electrode electrolyte mass loading [mg.cm-2]"] = self.results.get("Positive electrode electrolyte mass loading [mg.cm-2]") or self.results.get("Positive electrode electrolyte volume loading [uL.cm-2]") * self.results.get("Electrolyte density [kg.m-3]") / 1000
@@ -316,7 +316,7 @@ class TEA():
         rectangle_colors = colors
      
         # Set up the figure and axis objects
-        fig = plt.figure(figsize=(8, 4))
+        fig = plt.figure(figsize=(8, 4), facecolor = 'white')
         ax = fig.add_axes([0.1, 0.25, 0.8, 0.6])
 
         # Create a collection of rectangles
@@ -434,7 +434,7 @@ energy_densities_LFP = lfp.stack_energy_densities(
 print("Volumetric stack energy density [Wh.L-1]: {}\nGravimetric stack energy density [Wh.kg-1]: {}".format(energy_densities_LFP[0], energy_densities_LFP[1]))
 lfp.plot_stack_breakdown(inputs = lfp_input_data, print_values = True)
 
-print("Marquis2019") # Separator density = 1
+print("Marquis2019") #
 lco = TEA(parameter_values=param_lco)
 energy_densities_LCO = lco.stack_energy_densities(
     inputs = lco_input_data, print_values = True
@@ -442,7 +442,7 @@ energy_densities_LCO = lco.stack_energy_densities(
 print("Volumetric stack energy density [Wh.L-1]: {}\nGravimetric stack energy density [Wh.kg-1]: {}".format(energy_densities_LCO[0], energy_densities_LCO[1]))
 lco.plot_stack_breakdown(inputs = lco_input_data, print_values = True)
 
-print("NCA_Kim2011") # Electrode density > graphite density
+print("NCA_Kim2011") #
 nca = TEA(parameter_values=param_nca)
 energy_densities_NCA = nca.stack_energy_densities(
     inputs = nca_input_data, print_values = True
