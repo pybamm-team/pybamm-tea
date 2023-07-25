@@ -189,16 +189,16 @@ class TEA():
         self.stack_energy_densities(inputs=inputs)
 
         # volume loadings
-        self.results["Negative current collector volume loading [uL.cm-2]"] = self.results.get("Negative current collector volume loading [uL.cm-2]") or self.results.get("Negative current collector thickness [m]") / 2 * 1000000
-        self.results["Negative electrode active material volume loading [uL.cm-2]"] = self.results.get("Negative electrode active material volume loading [uL.cm-2]") or self.results.get("Negative electrode thickness [m]") * self.parameter_values.get("Negative electrode active material volume fraction") * 1000000
-        self.results["Negative electrode inactive material volume loading [uL.cm-2]"] = self.results.get("Negative electrode inactive material volume loading [uL.cm-2]") or self.results.get("Negative electrode thickness [m]") * (1 - self.parameter_values.get("Negative electrode active material volume fraction") - self.parameter_values.get("Negative electrode porosity")) * 1000000
-        self.results["Negative electrode electrolyte volume loading [uL.cm-2]"] = self.results.get("Negative electrode electrolyte volume loading [uL.cm-2]") or self.results.get("Negative electrode thickness [m]") * self.parameter_values.get("Negative electrode porosity") * 1000000
-        self.results["Separator volume loading [uL.cm-2]"] = self.results.get("Separator volume loading [uL.cm-2]") or self.results.get("Separator thickness [m]") * (1 - self.parameter_values.get("Separator porosity")) * 1000000
-        self.results["Separator electrolyte volume loading [uL.cm-2]"] = self.results.get("Separator electrolyte volume loading [uL.cm-2]") or self.results.get("Separator thickness [m]") * self.results.get("Separator porosity") * 1000000
-        self.results["Positive electrode active material volume loading [uL.cm-2]"] = self.results.get("Positive electrode active material volume loading [uL.cm-2]") or self.results.get("Positive electrode thickness [m]") * self.parameter_values.get("Positive electrode active material volume fraction") * 1000000
-        self.results["Positive electrode inactive material volume loading [uL.cm-2]"] = self.results.get("Positive electrode inactive material volume loading [uL.cm-2]") or self.results.get("Positive electrode thickness [m]") * (1 - self.parameter_values.get("Positive electrode active material volume fraction") - self.parameter_values.get("Positive electrode porosity")) * 1000000
-        self.results["Positive electrode electrolyte volume loading [uL.cm-2]"] = self.results.get("Positive electrode electrolyte volume loading [uL.cm-2]") or self.results.get("Positive electrode thickness [m]") * self.parameter_values.get("Positive electrode porosity") * 1000000
-        self.results["Positive current collector volume loading [uL.cm-2]"] = self.results.get("Positive current collector volume loading [uL.cm-2]") or self.results.get("Positive current collector thickness [m]") / 2 * 1000000
+        self.results["Negative current collector volume loading [uL.cm-2]"] = self.results.get("Negative current collector volume loading [uL.cm-2]") or self.results.get("Negative current collector thickness [m]") / 2 * 100000
+        self.results["Negative electrode active material volume loading [uL.cm-2]"] = self.results.get("Negative electrode active material volume loading [uL.cm-2]") or self.results.get("Negative electrode thickness [m]") * self.parameter_values.get("Negative electrode active material volume fraction") * 100000
+        self.results["Negative electrode inactive material volume loading [uL.cm-2]"] = self.results.get("Negative electrode inactive material volume loading [uL.cm-2]") or self.results.get("Negative electrode thickness [m]") * (1 - self.parameter_values.get("Negative electrode active material volume fraction") - self.parameter_values.get("Negative electrode porosity")) * 100000
+        self.results["Negative electrode electrolyte volume loading [uL.cm-2]"] = self.results.get("Negative electrode electrolyte volume loading [uL.cm-2]") or self.results.get("Negative electrode thickness [m]") * self.parameter_values.get("Negative electrode porosity") * 100000
+        self.results["Separator volume loading [uL.cm-2]"] = self.results.get("Separator volume loading [uL.cm-2]") or self.results.get("Separator thickness [m]") * (1 - self.parameter_values.get("Separator porosity")) * 100000
+        self.results["Separator electrolyte volume loading [uL.cm-2]"] = self.results.get("Separator electrolyte volume loading [uL.cm-2]") or self.results.get("Separator thickness [m]") * self.results.get("Separator porosity") * 100000
+        self.results["Positive electrode active material volume loading [uL.cm-2]"] = self.results.get("Positive electrode active material volume loading [uL.cm-2]") or self.results.get("Positive electrode thickness [m]") * self.parameter_values.get("Positive electrode active material volume fraction") * 100000
+        self.results["Positive electrode inactive material volume loading [uL.cm-2]"] = self.results.get("Positive electrode inactive material volume loading [uL.cm-2]") or self.results.get("Positive electrode thickness [m]") * (1 - self.parameter_values.get("Positive electrode active material volume fraction") - self.parameter_values.get("Positive electrode porosity")) * 100000
+        self.results["Positive electrode electrolyte volume loading [uL.cm-2]"] = self.results.get("Positive electrode electrolyte volume loading [uL.cm-2]") or self.results.get("Positive electrode thickness [m]") * self.parameter_values.get("Positive electrode porosity") * 100000
+        self.results["Positive current collector volume loading [uL.cm-2]"] = self.results.get("Positive current collector volume loading [uL.cm-2]") or self.results.get("Positive current collector thickness [m]") / 2 * 100000
 
         # mass loadings
         self.results["Negative current collector mass loading [mg.cm-2]"] = self.results.get("Negative current collector mass loading [mg.cm-2]") or self.results.get("Negative current collector volume loading [uL.cm-2]") * self.results.get("Negative current collector density [kg.m-3]") / 1000
@@ -212,7 +212,7 @@ class TEA():
         else:
                 self.results["Negative electrode active material mass loading [mg.cm-2]"] = self.results.get("Negative electrode active material mass loading [mg.cm-2]") or self.results.get("Negative electrode active material volume loading [uL.cm-2]") * (inputs.get("Negative electrode active material true density [kg.m-3]") or self.results.get("Negative electrode active material true density [kg.m-3]")) / 1000
         self.results["Negative electrode electrolyte mass loading [mg.cm-2]"] = self.results.get("Negative electrode electrolyte mass loading [mg.cm-2]") or self.results.get("Negative electrode electrolyte volume loading [uL.cm-2]") * self.results.get("Electrolyte density [kg.m-3]") / 1000
-        self.results["Negative electrode inactive material mass loading [mg.cm-2]"] = self.results.get("Negative electrode inactive material mass loading [mg.cm-2]") or self.results.get("Negative electrode density [kg.m-3]") * self.results.get("Negative electrode thickness [m]") * 1000 - self.results.get("Negative electrode active material mass loading [mg.cm-2]")
+        self.results["Negative electrode inactive material mass loading [mg.cm-2]"] = self.results.get("Negative electrode inactive material mass loading [mg.cm-2]") or self.results.get("Negative electrode density [kg.m-3]") * self.results.get("Negative electrode thickness [m]") * 100 - self.results.get("Negative electrode active material mass loading [mg.cm-2]")
         self.results["Separator mass loading [mg.cm-2]"] = self.results.get("Separator mass loading [mg.cm-2]") or self.results.get("Separator volume loading [uL.cm-2]") * self.results.get("Separator density [kg.m-3]") / 1000
         self.results["Separator electrolyte mass loading [mg.cm-2]"] = self.results.get("Separator electrolyte mass loading [mg.cm-2]") or self.results.get("Separator electrolyte volume loading [uL.cm-2]") * self.results.get("Electrolyte density [kg.m-3]") / 1000
         if self.parameter_values.get("Positive electrode active material volume fraction") + self.parameter_values.get("Positive electrode porosity") == 1:
@@ -223,7 +223,7 @@ class TEA():
         else:
                     self.results["Positive electrode active material mass loading [mg.cm-2]"] = self.results.get("Positive electrode active material mass loading [mg.cm-2]") or self.results.get("Positive electrode active material volume loading [uL.cm-2]") * (inputs.get("Positive electrode active material true density [kg.m-3]") or self.results.get("Positive electrode active material true density [kg.m-3]")) / 1000
         self.results["Positive electrode electrolyte mass loading [mg.cm-2]"] = self.results.get("Positive electrode electrolyte mass loading [mg.cm-2]") or self.results.get("Positive electrode electrolyte volume loading [uL.cm-2]") * self.results.get("Electrolyte density [kg.m-3]") / 1000
-        self.results["Positive electrode inactive material mass loading [mg.cm-2]"] = self.results.get("Positive electrode inactive material mass loading [mg.cm-2]") or self.results.get("Positive electrode density [kg.m-3]") * self.results.get("Positive electrode thickness [m]") * 1000 - self.results.get("Positive electrode active material mass loading [mg.cm-2]")
+        self.results["Positive electrode inactive material mass loading [mg.cm-2]"] = self.results.get("Positive electrode inactive material mass loading [mg.cm-2]") or self.results.get("Positive electrode density [kg.m-3]") * self.results.get("Positive electrode thickness [m]") * 100 - self.results.get("Positive electrode active material mass loading [mg.cm-2]")
         self.results["Positive current collector mass loading [mg.cm-2]"] = self.results.get("Positive current collector mass loading [mg.cm-2]") or self.results.get("Positive current collector volume loading [uL.cm-2]") * self.results.get("Positive current collector density [kg.m-3]") / 1000
 
         if print_values == True:
@@ -372,7 +372,7 @@ class TEA():
         ax.set_ylim(0, max(rect_height_sum_1, rect_height_sum_2, rect_height_sum_3, rect_height_sum_4)*1.05) # 
 
         ax2 = ax.twiny()
-        ax2.set_xlim( - widths[0], x_pos)
+        ax2.set_xlim( - widths[0]*10, x_pos*10)
         ax2.set_xlabel('Thickness [um]')
 
         # Add labels and title to the chart
@@ -394,6 +394,7 @@ param_lfp = pybamm.ParameterValues("Prada2013")
 param_nmc = pybamm.ParameterValues("Chen2020")
 param_nca = pybamm.ParameterValues("NCA_Kim2011")
 param_lco = pybamm.ParameterValues("Marquis2019")
+param_lco_ = pybamm.ParameterValues("Ramadass2004")
 
 # no densities in Prada2013 (-> guess values)
 results = {
@@ -434,13 +435,21 @@ energy_densities_LFP = lfp.stack_energy_densities(
 print("Volumetric stack energy density [Wh.L-1]: {}\nGravimetric stack energy density [Wh.kg-1]: {}".format(energy_densities_LFP[0], energy_densities_LFP[1]))
 lfp.plot_stack_breakdown(inputs = lfp_input_data, print_values = True)
 
-print("Marquis2019") #
+print("Marquis2019")
 lco = TEA(parameter_values=param_lco)
 energy_densities_LCO = lco.stack_energy_densities(
     inputs = lco_input_data, print_values = True
 )
 print("Volumetric stack energy density [Wh.L-1]: {}\nGravimetric stack energy density [Wh.kg-1]: {}".format(energy_densities_LCO[0], energy_densities_LCO[1]))
 lco.plot_stack_breakdown(inputs = lco_input_data, print_values = True)
+
+print("Ramadas2004") #
+lco_ = TEA(parameter_values=param_lco_)
+energy_densities_LCO_ = lco_.stack_energy_densities(
+    inputs = lco_input_data, print_values = True
+)
+print("Volumetric stack energy density [Wh.L-1]: {}\nGravimetric stack energy density [Wh.kg-1]: {}".format(energy_densities_LCO_[0], energy_densities_LCO_[1]))
+lco_.plot_stack_breakdown(inputs = lco_input_data, print_values = True)
 
 print("NCA_Kim2011") #
 nca = TEA(parameter_values=param_nca)
