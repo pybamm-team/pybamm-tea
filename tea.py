@@ -4,7 +4,6 @@
 
 import pybamm
 import matplotlib.pyplot as plt
-#import numpy as np
 import matplotlib.patches as patches
 import pandas as pd
 
@@ -23,271 +22,225 @@ class TEA:
     def __init__(self, parameter_values):
         self.parameter_values = parameter_values
 
-    def print_stack_breakdown(self, print_dict=False):
-        if not hasattr(self, "stack_bd"):
-                self.calculate_stack_breakdown()
-        if print_dict == True:
-            print(dict)
-        # convert the stackbreakdown dict to a dataframe with three columns,
-        # in the first column the keys, in the second column the values for volume loadings
-        # and in the third column the values for mass loadings
-
-        # Create a dataframe with a column for the components, a column for the volume loadings, and a column for the mass loadings
-        components = pd.DataFrame(["Negative current collector",
-                                   "Negative electrode active material",
-                                   "Negative electrode inactive material",
-                                   "Negative electrode electrolyte",
-                                   "Separator",
-                                   "Separator electrolyte",
-                                   "Positive electrode active material",
-                                   "Positive electrode inactive material",
-                                   "Positive electrode electrolyte",
-                                   "Positive current collector",
-                                   "Dry negative electrode",
-                                   "Dry positive electrode"], columns=["Components"])
-        volumes = pd.DataFrame([self.stack_bd.get("Negative current collector volume loading [uL.cm-2]"),
-                                self.stack_bd.get("Negative electrode active material volume loading [uL.cm-2]"),
-                                self.stack_bd.get("Negative electrode inactive material volume loading [uL.cm-2]"),
-                                self.stack_bd.get("Negative electrode electrolyte volume loading [uL.cm-2]"),
-                                self.stack_bd.get("Separator volume loading [uL.cm-2]"),
-                                self.stack_bd.get("Separator electrolyte volume loading [uL.cm-2]"),
-                                self.stack_bd.get("Positive electrode active material volume loading [uL.cm-2]"),
-                                self.stack_bd.get("Positive electrode inactive material volume loading [uL.cm-2]"),
-                                self.stack_bd.get("Positive electrode electrolyte volume loading [uL.cm-2]"),
-                                self.stack_bd.get("Positive current collector volume loading [uL.cm-2]"),
-                                self.stack_bd.get("Negative electrode active material volume loading [uL.cm-2]") + self.stack_bd.get("Negative electrode inactive material volume loading [uL.cm-2]") + self.stack_bd.get("Negative electrode electrolyte volume loading [uL.cm-2]"),
-                                self.stack_bd.get("Positive electrode active material volume loading [uL.cm-2]") + self.stack_bd.get("Positive electrode inactive material volume loading [uL.cm-2]") + self.stack_bd.get("Positive electrode electrolyte volume loading [uL.cm-2]")], columns=["Volume loading [uL.cm-2]"])
-        masses = pd.DataFrame([self.stack_bd.get("Negative current collector mass loading [mg.cm-2]"),
-                                self.stack_bd.get("Negative electrode active material mass loading [mg.cm-2]"),
-                                self.stack_bd.get("Negative electrode inactive material mass loading [mg.cm-2]"),
-                                self.stack_bd.get("Negative electrode electrolyte mass loading [mg.cm-2]"),
-                                self.stack_bd.get("Separator mass loading [mg.cm-2]"),
-                                self.stack_bd.get("Separator electrolyte mass loading [mg.cm-2]"),
-                                self.stack_bd.get("Positive electrode active material mass loading [mg.cm-2]"),
-                                self.stack_bd.get("Positive electrode inactive material mass loading [mg.cm-2]"),
-                                self.stack_bd.get("Positive electrode electrolyte mass loading [mg.cm-2]"),
-                                self.stack_bd.get("Positive current collector mass loading [mg.cm-2]"),
-                                self.stack_bd.get("Negative electrode active material mass loading [mg.cm-2]") + self.stack_bd.get("Negative electrode inactive material mass loading [mg.cm-2]"),
-                                self.stack_bd.get("Positive electrode active material mass loading [mg.cm-2]") + self.stack_bd.get("Positive electrode inactive material mass loading [mg.cm-2]")], columns=["Mass loading [mg.cm-2]"])
-        densities = pd.DataFrame([self.stack_bd.get("Negative current collector mass loading [mg.cm-2]")/self.stack_bd.get("Negative current collector volume loading [uL.cm-2]") if self.stack_bd.get("Negative current collector volume loading [uL.cm-2]") != 0 else 0,
-                          self.stack_bd.get("Negative electrode active material mass loading [mg.cm-2]")/self.stack_bd.get("Negative electrode active material volume loading [uL.cm-2]") if self.stack_bd.get("Negative electrode active material volume loading [uL.cm-2]") != 0 else 0,
-                          self.stack_bd.get("Negative electrode inactive material mass loading [mg.cm-2]")/self.stack_bd.get("Negative electrode inactive material volume loading [uL.cm-2]") if self.stack_bd.get("Negative electrode inactive material volume loading [uL.cm-2]") != 0 else 0,
-                          self.stack_bd.get("Negative electrode electrolyte mass loading [mg.cm-2]")/self.stack_bd.get("Negative electrode electrolyte volume loading [uL.cm-2]") if self.stack_bd.get("Negative electrode electrolyte volume loading [uL.cm-2]") != 0 else 0,
-                          self.stack_bd.get("Separator mass loading [mg.cm-2]")/self.stack_bd.get("Separator volume loading [uL.cm-2]") if self.stack_bd.get("Separator volume loading [uL.cm-2]") != 0 else 0,
-                          self.stack_bd.get("Separator electrolyte mass loading [mg.cm-2]")/self.stack_bd.get("Separator electrolyte volume loading [uL.cm-2]") if self.stack_bd.get("Separator electrolyte volume loading [uL.cm-2]") != 0 else 0,
-                          self.stack_bd.get("Positive electrode active material mass loading [mg.cm-2]")/self.stack_bd.get("Positive electrode active material volume loading [uL.cm-2]") if self.stack_bd.get("Positive electrode active material volume loading [uL.cm-2]") != 0 else 0,
-                          self.stack_bd.get("Positive electrode inactive material mass loading [mg.cm-2]")/self.stack_bd.get("Positive electrode inactive material volume loading [uL.cm-2]") if self.stack_bd.get("Positive electrode inactive material volume loading [uL.cm-2]") != 0 else 0,
-                          self.stack_bd.get("Positive electrode electrolyte mass loading [mg.cm-2]")/self.stack_bd.get("Positive electrode electrolyte volume loading [uL.cm-2]") if self.stack_bd.get("Positive electrode electrolyte volume loading [uL.cm-2]") != 0 else 0,
-                          self.stack_bd.get("Positive current collector mass loading [mg.cm-2]")/self.stack_bd.get("Positive current collector volume loading [uL.cm-2]") if self.stack_bd.get("Positive current collector volume loading [uL.cm-2]") != 0 else 0,
-                          (self.stack_bd.get("Negative electrode active material mass loading [mg.cm-2]") + self.stack_bd.get("Negative electrode inactive material mass loading [mg.cm-2]")) / (self.stack_bd.get("Negative electrode active material volume loading [uL.cm-2]") + self.stack_bd.get("Negative electrode inactive material volume loading [uL.cm-2]") + self.stack_bd.get("Negative electrode electrolyte volume loading [uL.cm-2]")) if (self.stack_bd.get("Negative electrode active material volume loading [uL.cm-2]") + self.stack_bd.get("Negative electrode inactive material volume loading [uL.cm-2]") + self.stack_bd.get("Negative electrode electrolyte volume loading [uL.cm-2]")) != 0 else 0,
-                          (self.stack_bd.get("Positive electrode active material mass loading [mg.cm-2]") + self.stack_bd.get("Positive electrode inactive material mass loading [mg.cm-2]")) / (self.stack_bd.get("Positive electrode active material volume loading [uL.cm-2]") + self.stack_bd.get("Positive electrode inactive material volume loading [uL.cm-2]") + self.stack_bd.get("Positive electrode electrolyte volume loading [uL.cm-2]")) if (self.stack_bd.get("Positive electrode active material volume loading [uL.cm-2]") + self.stack_bd.get("Positive electrode inactive material volume loading [uL.cm-2]") + self.stack_bd.get("Positive electrode electrolyte volume loading [uL.cm-2]")) != 0 else 0], columns=["Density [mg.uL-1]"])
-
+    @property
+    def stack_breakdown(self):
+        """A breakdown of volume- and mass loadings on stack level."""
+        try:
+            return self._stack_breakdown
+        except AttributeError:
+            self._stack_breakdown = self.calculate_stack_breakdown()
+            return self._stack_breakdown
+    
+    @property
+    def stack_breakdown_dataframe(self):
+        """A dataframe with components, volume-, mass loadings and densities on stack level."""
+        try:
+            return self._stack_breakdown_dataframe
+        except AttributeError:
+            self._stack_breakdown_dataframe = self.print_stack_breakdown()
+            return self._stack_breakdown_dataframe
+        
+    @property
+    def stack_energy_densities(self):
+        """Energy densities and parameters for calculation on stack level."""
+        try:
+            return self._stack_energy_densities
+        except AttributeError:
+            self._stack_energy_densities = self.calculate_stack_energy_densities()
+            return self._stack_energy_densities
+    
+    def print_stack_breakdown(self):
+        """A dataframe with components, volume-, mass loadings and densities on stack level."""
+        stack_bd = self.stack_breakdown
+        
+        # Create a dataframe with columns for components, volume- and mass loadings and densities
+        components = pd.DataFrame([c.replace(" volume loading [uL.cm-2]", "") for c in stack_bd.keys() if " volume loading [uL.cm-2]" in c], columns=["Components"])
+        volumes = pd.DataFrame([stack_bd.get(f"{c} volume loading [uL.cm-2]") for c in components["Components"]], columns=["Volume loading [uL.cm-2]"])
+        masses = pd.DataFrame([stack_bd.get(f"{c} mass loading [mg.cm-2]") for c in components["Components"]], columns=["Mass loading [mg.cm-2]"])
+        densities = pd.DataFrame([stack_bd.get(f"{c} density [mg.uL-1]") for c in components["Components"]], columns=["Density [mg.uL-1]"])
+        
         # Concatenate the dataframes side by side
         df = pd.concat([components, volumes, masses, densities], axis=1)
         df.set_index('Components', inplace=True)
         df.index.name = None
-        print(df)
         return df
-    
-    def print_stack_energy_densities(self, print_dict=False):
-        if not hasattr(self, "stack_edd"):
-                self.calculate_stack_energy_densities()
-        if print_dict == True:
-            print(dict)
-            
+
     def calculate_stack_energy_densities(self):
-        # defaults for current collector thicknesses and density, as well as for electrolyte density are provided
-        self.stack_edd = {} # stack energy densities dict
+        """Calculate ideal volumetric and gravimetric energy densities on stack level."""
+        stack_ed = {}  # stack energy densities dict
+        pava = self.parameter_values  # parameter values
 
         # ocv's
-        ### add optional user defined cut-off voltages (supplied with inputs)?
-        ne_ocv = self.parameter_values["Negative electrode OCP [V]"]
-        pe_ocv = self.parameter_values["Positive electrode OCP [V]"]
-        x0, x100, y100, y0 = pybamm.lithium_ion.get_min_max_stoichiometries(
-            self.parameter_values
-        )
+        ne_ocv = pava["Negative electrode OCP [V]"]
+        pe_ocv = pava["Positive electrode OCP [V]"]
+        x0, x100, y100, y0 = pybamm.lithium_ion.get_min_max_stoichiometries(pava)
         soc = pybamm.linspace(0, 1)
         x = x0 + soc * (x100 - x0)
         y = y0 - soc * (y0 - y100)
 
-        self.stack_edd["Negative electrode average OCP [V]"] = self.parameter_values.get("Negative electrode average OCP [V]") or ne_ocv(x).entries.mean()
-        self.stack_edd["Positive electrode average OCP [V]"] = self.parameter_values.get("Positive electrode average OCP [V]") or pe_ocv(y).entries.mean()
-        self.stack_edd["Stack average OCP [V]"] = self.stack_edd.get("Stack average OCP [V]") or self.stack_edd.get("Positive electrode average OCP [V]") - self.stack_edd.get("Negative electrode average OCP [V]")
+        stack_ed["Negative electrode average OCP [V]"] = pava.get("Negative electrode average OCP [V]") or ne_ocv(x).entries.mean()
+        stack_ed["Positive electrode average OCP [V]"] = pava.get("Positive electrode average OCP [V]") or pe_ocv(y).entries.mean()
+        stack_ed["Stack average OCP [V]"] = pava.get("Stack average OCP [V]") or (stack_ed.get(
+            "Positive electrode average OCP [V]") - stack_ed.get("Negative electrode average OCP [V]"))
 
         # areal capacity
-        ### add optional user defined 1st cycle capacity loss in case capacity is supplied explicitly or on top of "Formation capacity loss [mA.h.cm-2]"?
-        ### calculate capacity based on user defined cut-off voltages?
         param = pybamm.LithiumIonParameters()
         esoh_solver = pybamm.lithium_ion.ElectrodeSOHSolver(
-            self.parameter_values, param
+            pava, param
         )
-        Q_n = self.parameter_values.evaluate(param.n.Q_init)
-        Q_p = self.parameter_values.evaluate(param.p.Q_init)
-        Q_Li = self.parameter_values.evaluate(param.Q_Li_particles_init)
+        Q_n = pava.evaluate(param.n.Q_init)
+        Q_p = pava.evaluate(param.p.Q_init)
+        Q_Li = pava.evaluate(param.Q_Li_particles_init)
         inputs_ = {"Q_Li": Q_Li, "Q_n": Q_n, "Q_p": Q_p}
         sol = esoh_solver.solve(inputs_)
-        areal_capacity = sol[
-            "Capacity [mA.h.cm-2]" # or better min("sol[Q_n * (x_100 - x_0)]"", "sol[Q_p * (y_0 - y_100)]")?
-        ]
-        self.stack_edd["Capacity [mA.h.cm-2]"] = self.stack_edd.get("Capacity [mA.h.cm-2]") or areal_capacity
+        stack_ed["Capacity [mA.h.cm-2]"] = pava.get("Capacity [mA.h.cm-2]") or sol["Capacity [mA.h.cm-2]"]
 
         # thicknesses
-        if self.parameter_values.get("Negative current collector thickness [m]") is None:
-            self.stack_edd["Negative current collector thickness [m]"] = 0.000012 # [m]
-            print(
-                "Warning: Missing 'Negative current collector thickness [m]', 12 [um] has been used."
-            )
+        compartments = ["Negative current collector", "Negative electrode", "Separator", "Positive electrode", "Positive current collector"]
+        stack_ed["Stack thickness [m]"] = 0
+        for compartment in compartments:
+            if pava.get(f"{compartment} thickness [m]") is None:
+                print(f"Warning: Missing '{compartment} thickness [m]'")
+            else:
+                stack_ed[f"{compartment} thickness [m]"] = pava.get(f"{compartment} thickness [m]")
+        if "current collector" in compartment:
+            stack_ed["Stack thickness [m]"] += pava.get(f"{compartment} thickness [m]") / 2
         else:
-            self.stack_edd["Negative current collector thickness [m]"] = self.parameter_values.get("Negative current collector thickness [m]")
-        if self.parameter_values.get("Positive current collector thickness [m]") is None:
-            self.stack_edd["Positive current collector thickness [m]"] = 0.000016 # [m]
-            print(
-                "Warning: Missing 'Positive current collector thickness [m]', 16 [um] has been used."
-            )
-        else:
-            self.stack_edd["Positive current collector thickness [m]"] = self.parameter_values.get("Positive current collector thickness [m]")
-        self.stack_edd["Negative electrode thickness [m]"] = self.parameter_values.get("Negative electrode thickness [m]")
-        self.stack_edd["Positive electrode thickness [m]"] = self.parameter_values.get("Positive electrode thickness [m]")
-        self.stack_edd["Separator thickness [m]"] = self.parameter_values.get("Separator thickness [m]")
-        self.stack_edd["Stack thickness [m]"] = self.stack_edd.get("Negative current collector thickness [m]") / 2 + self.stack_edd.get("Negative electrode thickness [m]") + self.stack_edd.get("Separator thickness [m]") + self.stack_edd.get("Positive electrode thickness [m]") + self.stack_edd.get("Positive current collector thickness [m]") / 2
+            stack_ed["Stack thickness [m]"] += pava.get(f"{compartment} thickness [m]")
         
-        # volumetric stack energy density
-        self.stack_edd["Volumetric stack energy density [Wh.L-1]"] = self.stack_edd.get("Stack average OCP [V]") * self.stack_edd.get("Capacity [mA.h.cm-2]") / self.stack_edd.get("Stack thickness [m]") / 100
+        # volumetric stack capacity in [Ah.L-1]
+        stack_ed["Volumetric stack capacity [Ah.L-1]"] = stack_ed.get("Capacity [mA.h.cm-2]") / stack_ed.get("Stack thickness [m]") / 100
         
-        # dry layer and electrolyte bulk densities
-        if self.parameter_values.get("Negative current collector density [kg.m-3]") is None:
-            self.stack_edd["Negative current collector density [kg.m-3]"] = 8960 # [kg.m-3]
-            print(
-                "Warning: Missing 'Negative current collector density [kg.m-3]', 8960 [kg.m-3] has been used."
-            )
-        else:
-            self.stack_edd["Negative current collector density [kg.m-3]"] = self.parameter_values.get("Negative current collector density [kg.m-3]")
-        if self.parameter_values.get("Positive current collector density [kg.m-3]") is None:
-            self.stack_edd["Positive current collector density [kg.m-3]"] = 2700 # [kg.m-3]
-            print(
-                "Warning: Missing 'Positive current collector density [kg.m-3]', 2700 [kg.m-3] has been used."
-            )
-        else:
-            self.stack_edd["Positive current collector density [kg.m-3]"] = self.parameter_values.get("Positive current collector density [kg.m-3]")
-        if self.parameter_values.get("Electrolyte density [kg.m-3]") is None:
-            self.stack_edd["Electrolyte density [kg.m-3]"] = 1276 # [kg.m-3]
-            print(
-                "Warning: Missing 'Electrolyte density [kg.m-3]', 1276 [kg.m-3] has been used."
-            )
-        else:
-            self.stack_edd["Electrolyte density [kg.m-3]"] = self.parameter_values.get("Electrolyte density [kg.m-3]")
-        self.stack_edd["Negative electrode density [kg.m-3]"] = self.parameter_values.get("Negative electrode density [kg.m-3]")
-        self.stack_edd["Positive electrode density [kg.m-3]"] = self.parameter_values.get("Positive electrode density [kg.m-3]")
-        self.stack_edd["Separator density [kg.m-3]"] = self.parameter_values.get("Separator density [kg.m-3]")
+        # volumetric stack energy density in [Wh.L-1]
+        stack_ed["Volumetric stack energy density [Wh.L-1]"] = stack_ed.get("Stack average OCP [V]") * stack_ed["Volumetric stack capacity [Ah.L-1]"]
         
-        # porosities
-        self.stack_edd["Negative electrode porosity"] = self.parameter_values.get("Negative electrode porosity")
-        self.stack_edd["Positive electrode porosity"] = self.parameter_values.get("Positive electrode porosity")
-        self.stack_edd["Separator porosity"] = self.parameter_values.get("Separator porosity")
-        
-        # dry layer true density
-        self.stack_edd["Negative electrode composite true density [kg.m-3]"] = self.stack_edd.get("Negative electrode density [kg.m-3]") / (1 - self.stack_edd.get("Negative electrode porosity"))
-        self.stack_edd["Positive electrode composite true density [kg.m-3]"] = self.stack_edd.get("Positive electrode density [kg.m-3]") / (1 - self.stack_edd.get("Positive electrode porosity"))
-        if self.stack_edd.get("Separator porosity") == 1: # e.g. in "Marquis2019" or for solid electrolytes
-            self.stack_edd["Separator true density [kg.m-3]"] = 0
-        else:
-            self.stack_edd["Separator true density [kg.m-3]"] = self.stack_edd.get("Separator density [kg.m-3]") / (1 - self.stack_edd.get("Separator porosity"))
-
-        # weight fractions
-        self.stack_edd["Negative electrode composite weight fraction"] = (1 - self.stack_edd.get("Negative electrode porosity")) * self.stack_edd.get("Negative electrode composite true density [kg.m-3]") / ((1 - self.stack_edd.get("Negative electrode porosity")) * self.stack_edd.get("Negative electrode composite true density [kg.m-3]") + self.stack_edd.get("Negative electrode porosity") * self.stack_edd.get("Electrolyte density [kg.m-3]"))
-        self.stack_edd["Positive electrode composite weight fraction"] = (1 - self.stack_edd.get("Positive electrode porosity")) * self.stack_edd.get("Positive electrode composite true density [kg.m-3]") / ((1 - self.stack_edd.get("Positive electrode porosity")) * self.stack_edd.get("Positive electrode composite true density [kg.m-3]") + self.stack_edd.get("Positive electrode porosity") * self.stack_edd.get("Electrolyte density [kg.m-3]"))
-        self.stack_edd["Separator weight fraction"] = (1 - self.stack_edd.get("Separator porosity")) * self.stack_edd.get("Separator true density [kg.m-3]") / ((1 - self.stack_edd.get("Separator porosity")) * self.stack_edd.get("Separator true density [kg.m-3]") + self.stack_edd.get("Separator porosity") * self.stack_edd.get("Electrolyte density [kg.m-3]"))
-
-        # electrode and separator with electrolyte densities
-        self.stack_edd["Negative electrode with electrolyte density [kg.m-3]"] = self.stack_edd.get("Negative electrode composite weight fraction") * self.stack_edd.get("Negative electrode composite true density [kg.m-3]") + self.stack_edd.get("Electrolyte density [kg.m-3]") * (1 - self.stack_edd.get("Negative electrode composite weight fraction"))
-        self.stack_edd["Positive electrode with electrolyte density [kg.m-3]"] = self.stack_edd.get("Positive electrode composite weight fraction") * self.stack_edd.get("Positive electrode composite true density [kg.m-3]") + self.stack_edd.get("Electrolyte density [kg.m-3]") * (1 - self.stack_edd.get("Positive electrode composite weight fraction"))
-        self.stack_edd["Separator with electrolyte density [kg.m-3]"] = self.stack_edd.get("Separator weight fraction") * self.stack_edd.get("Separator true density [kg.m-3]") + self.stack_edd.get("Electrolyte density [kg.m-3]") * (1 - self.stack_edd.get("Separator weight fraction"))
-
         # stack density
-        self.stack_edd["Stack density [kg.m-3]"] = (self.stack_edd.get("Negative current collector thickness [m]") / 2 * self.stack_edd.get("Negative current collector density [kg.m-3]") + self.stack_edd.get("Negative electrode thickness [m]") * self.stack_edd.get("Negative electrode with electrolyte density [kg.m-3]") + self.stack_edd.get("Separator thickness [m]") * self.stack_edd.get("Separator with electrolyte density [kg.m-3]") + self.stack_edd.get("Positive electrode thickness [m]") * self.stack_edd.get("Positive electrode with electrolyte density [kg.m-3]") + self.stack_edd.get("Positive current collector thickness [m]") / 2 * self.stack_edd.get("Positive current collector density [kg.m-3]")) / self.stack_edd.get("Stack thickness [m]")
+        stack_ed["Stack density [kg.m-3]"] = 0
+        for compartment in compartments:
+            if pava.get(f"{compartment} density [kg.m-3]") is None:
+                print(f"Warning: Missing '{compartment} density [kg.m-3]'")
+            else:
+                stack_ed[f"{compartment} density [kg.m-3]"] = pava.get(f"{compartment} density [kg.m-3]")
+        if "current collector" in compartment:
+            stack_ed["Stack density [kg.m-3]"] += pava.get(f"{compartment} thickness [m]") / 2 * pava.get(f"{compartment} density [kg.m-3]")
+        else:
+            stack_ed["Stack density [kg.m-3]"] += pava.get(f"{compartment} thickness [m]") * pava.get(f"{compartment} density [kg.m-3]")
+        stack_ed["Stack density [kg.m-3]"] = stack_ed.get("Stack density [kg.m-3]") / stack_ed.get("Stack thickness [m]")
+
+        # gravimetric stack energy density in [Ah.kg-1]
+        stack_ed["Gravimetric stack capacity [Ah.kg-1]"] = stack_ed.get(
+            "Volumetric stack capacity [Ah.L-1]") / stack_ed.get("Stack density [kg.m-3]") * 1000
         
-        # gravimetric stack energy density Wh.kg-1 better "specific energy"?
-        self.stack_edd["Gravimetric stack energy density [Wh.kg-1]"] = self.stack_edd.get("Volumetric stack energy density [Wh.L-1]") / self.stack_edd.get("Stack density [kg.m-3]") * 1000
-        
-        return self.stack_edd
+        # gravimetric stack energy density in [Wh.kg-1]
+        stack_ed["Gravimetric stack energy density [Wh.kg-1]"] = stack_ed.get(
+            "Volumetric stack energy density [Wh.L-1]") / stack_ed.get("Stack density [kg.m-3]") * 1000
+
+        return stack_ed
 
     def calculate_stack_breakdown(self):
+        """Breakdown volume- and mass loadings on stack level."""
+        stack_bd = {}  # stack energy densities dict
+        pava = self.parameter_values  # parameter values
 
-        if not hasattr(self, "stack_edd"):
-                self.calculate_stack_energy_densities()
-        
-        self.stack_bd = {} # stack breakdown dict
-        
+        # volume fractions
+        for charge in ["Negative", "Positive"]:
+            stack_bd[f"{charge} electrode electrolyte volume fraction"] = pava.get(f"{charge} electrode porosity")
+            stack_bd[f"{charge} electrode active material volume fraction"] = pava.get(f"{charge} electrode active material volume fraction")
+            stack_bd[f"{charge} electrode inactive material volume fraction"] = 1 - stack_bd.get(f"{charge} electrode electrolyte volume fraction") - stack_bd.get(f"{charge} electrode active material volume fraction")
+            stack_bd[f"{charge} electrode dry volume fraction"] = 1
+        stack_bd["Separator electrolyte volume fraction"] = pava.get("Separator porosity")
+        stack_bd["Separator dry volume fraction"] = 1 - stack_bd.get("Separator electrolyte volume fraction")
+
         # volume loadings
-        self.stack_bd["Negative current collector volume loading [uL.cm-2]"] = self.stack_edd.get("Negative current collector thickness [m]") / 2 * 100000
-        self.stack_bd["Negative electrode active material volume loading [uL.cm-2]"] = self.stack_edd.get("Negative electrode thickness [m]") * self.parameter_values.get("Negative electrode active material volume fraction") * 100000
-        self.stack_bd["Negative electrode inactive material volume loading [uL.cm-2]"] = self.stack_edd.get("Negative electrode thickness [m]") * (1 - self.parameter_values.get("Negative electrode active material volume fraction") - self.parameter_values.get("Negative electrode porosity")) * 100000
-        self.stack_bd["Negative electrode electrolyte volume loading [uL.cm-2]"] = self.stack_edd.get("Negative electrode thickness [m]") * self.parameter_values.get("Negative electrode porosity") * 100000
-        self.stack_bd["Separator volume loading [uL.cm-2]"] = self.stack_edd.get("Separator thickness [m]") * (1 - self.parameter_values.get("Separator porosity")) * 100000
-        self.stack_bd["Separator electrolyte volume loading [uL.cm-2]"] = self.stack_edd.get("Separator thickness [m]") * self.stack_edd.get("Separator porosity") * 100000
-        self.stack_bd["Positive electrode active material volume loading [uL.cm-2]"] = self.stack_edd.get("Positive electrode thickness [m]") * self.parameter_values.get("Positive electrode active material volume fraction") * 100000
-        self.stack_bd["Positive electrode inactive material volume loading [uL.cm-2]"] = self.stack_edd.get("Positive electrode thickness [m]") * (1 - self.parameter_values.get("Positive electrode active material volume fraction") - self.parameter_values.get("Positive electrode porosity")) * 100000
-        self.stack_bd["Positive electrode electrolyte volume loading [uL.cm-2]"] = self.stack_edd.get("Positive electrode thickness [m]") * self.parameter_values.get("Positive electrode porosity") * 100000
-        self.stack_bd["Positive current collector volume loading [uL.cm-2]"] = self.stack_edd.get("Positive current collector thickness [m]") / 2 * 100000
+        for components in list(stack_bd.keys()):
+            if "Negative" in components:
+                stack_bd[components.replace(" volume fraction", " volume loading [uL.cm-2]")] = stack_bd.get(components) * pava.get("Negative electrode thickness [m]") * 100000
+            elif "Positive" in components:
+                stack_bd[components.replace(" volume fraction", " volume loading [uL.cm-2]")] = stack_bd.get(components) * pava.get("Positive electrode thickness [m]") * 100000
+            elif "Separator" in components:
+                stack_bd[components.replace(" volume fraction", " volume loading [uL.cm-2]")] = stack_bd.get(components) * pava.get("Separator thickness [m]") * 100000
+        stack_bd["Negative current collector volume loading [uL.cm-2]"] = pava.get("Negative current collector thickness [m]", 0) * 100000
+        stack_bd["Positive current collector volume loading [uL.cm-2]"] = pava.get("Positive current collector thickness [m]", 0) * 100000
+
+        # densities
+        for charge in ["Negative", "Positive"]:
+            stack_bd[f"{charge} electrode electrolyte density [mg.uL-1]"] = pava.get("Electrolyte density [kg.m-3]",0) / 1000
+            stack_bd[f"{charge} electrode dry density [mg.uL-1]"] = (pava.get(f"{charge} electrode density [kg.m-3]",0)
+            - pava.get(f"{charge} electrode porosity") * pava.get("Electrolyte density [kg.m-3]",0)) / 1000
+            if stack_bd.get(f"{charge} electrode inactive material volume fraction") == 0:
+                stack_bd[f"{charge} electrode inactive material density [mg.uL-1]"] = 0
+                stack_bd[f"{charge} electrode active material density [mg.uL-1]"] = stack_bd[f"{charge} electrode dry density [mg.uL-1]"]
+            else:
+                stack_bd[f"{charge} electrode inactive material density [mg.uL-1]"] = (
+                    pava.get(f"{charge} electrode density [kg.m-3]",0) - 
+                    pava.get(f"{charge} electrode porosity") * pava.get("Electrolyte density [kg.m-3]",0) - 
+                    pava.get(f"{charge} electrode active material volume fraction",0) * 
+                    pava.get(f"{charge} electrode active material density [kg.m-3]",0)
+                ) / stack_bd.get(f"{charge} electrode inactive material volume fraction") / 1000
+                stack_bd[f"{charge} electrode active material density [mg.uL-1]"] = pava.get(f"{charge} electrode active material density [kg.m-3]",0) / 1000
+        stack_bd["Separator electrolyte density [mg.uL-1]"] = pava.get("Electrolyte density [kg.m-3]",0) / 1000
+        if pava.get("Separator porosity") == 1:
+            stack_bd["Separator dry density [mg.uL-1]"] = 0
+        else:
+            stack_bd["Separator dry density [mg.uL-1]"] = (pava.get("Separator density [kg.m-3]",0) - pava.get("Separator porosity") * pava.get("Electrolyte density [kg.m-3]",0)) / (1 - pava.get("Separator porosity")) / 1000
+        stack_bd["Negative current collector density [mg.uL-1]"] = pava.get("Negative current collector density [kg.m-3]",0) / 1000
+        stack_bd["Positive current collector density [mg.uL-1]"] = pava.get("Positive current collector density [kg.m-3]",0) / 1000
+
+        if pava.get("Electrolyte density [kg.m-3]") is None:
+            print("Error: Missing 'Electrolyte density [kg.m-3]'")
+        if pava.get("Negative current collector density [kg.m-3]") is None:
+            print("Error: Missing 'Negative current collector density [kg.m-3]'")
+        if pava.get("Positive current collector density [kg.m-3]") is None:
+            print("Error: Missing 'Positive current collector density [kg.m-3]'")
+        if pava.get("Negative electrode density [kg.m-3]") is None:
+            print("Error: Missing 'Negative electrode density [kg.m-3]'")
+        if pava.get("Negative electrode active material density [kg.m-3]") is None:
+            print("Error: Missing 'Negative electrode active material density [kg.m-3]'")
+        if pava.get("Positive electrode density [kg.m-3]") is None:
+            print("Error: Missing 'Positive electrode density [kg.m-3]'")
+        if pava.get("Positive electrode active material density [kg.m-3]") is None:
+            print("Error: Missing 'Positive electrode active material density [kg.m-3]'")
+        if pava.get("Separator density [kg.m-3]") is None:
+            print("Error: Missing 'Separator density [kg.m-3]'")
 
         # mass loadings
-        self.stack_bd["Negative current collector mass loading [mg.cm-2]"] = self.stack_bd.get("Negative current collector volume loading [uL.cm-2]") * self.stack_edd.get("Negative current collector density [kg.m-3]") / 1000
-        if self.parameter_values.get("Negative electrode active material volume fraction") + self.parameter_values.get("Negative electrode porosity") == 1:
-            self.stack_bd["Negative electrode active material mass loading [mg.cm-2]"] = self.stack_bd.get("Negative electrode active material volume loading [uL.cm-2]") * self.stack_edd.get("Negative electrode composite true density [kg.m-3]") / 1000
-        elif self.parameter_values.get("Negative electrode active material true density [kg.m-3]") == None:
-            self.stack_bd["Negative electrode active material mass loading [mg.cm-2]"] = 0
-            print("Error: Missing 'Negative electrode active material true density [kg.m-3]'")
-        else:
-            self.stack_bd["Negative electrode active material mass loading [mg.cm-2]"] = self.stack_bd.get("Negative electrode active material volume loading [uL.cm-2]") * self.parameter_values.get("Negative electrode active material true density [kg.m-3]") / 1000
-        self.stack_bd["Negative electrode electrolyte mass loading [mg.cm-2]"] = self.stack_bd.get("Negative electrode electrolyte volume loading [uL.cm-2]") * self.stack_edd.get("Electrolyte density [kg.m-3]") / 1000
-        self.stack_bd["Negative electrode inactive material mass loading [mg.cm-2]"] = self.stack_edd.get("Negative electrode density [kg.m-3]") * self.stack_edd.get("Negative electrode thickness [m]") * 100 - self.stack_bd.get("Negative electrode active material mass loading [mg.cm-2]")
-        self.stack_bd["Separator mass loading [mg.cm-2]"] = self.stack_bd.get("Separator volume loading [uL.cm-2]") * self.stack_edd.get("Separator density [kg.m-3]") / 1000
-        self.stack_bd["Separator electrolyte mass loading [mg.cm-2]"] = self.stack_bd.get("Separator electrolyte volume loading [uL.cm-2]") * self.stack_edd.get("Electrolyte density [kg.m-3]") / 1000
-        if self.parameter_values.get("Positive electrode active material volume fraction") + self.parameter_values.get("Positive electrode porosity") == 1:
-                self.stack_bd["Positive electrode active material mass loading [mg.cm-2]"] = self.stack_bd.get("Positive electrode active material volume loading [uL.cm-2]") * self.stack_edd.get("Positive electrode composite true density [kg.m-3]") / 1000
-        elif self.parameter_values.get("Positive electrode active material true density [kg.m-3]") == None:
-                self.stack_bd["Positive electrode active material mass loading [mg.cm-2]"] = 0
-                print("Error: Missing 'Positive electrode active material true density [kg.m-3]'")
-        else:
-                self.stack_bd["Positive electrode active material mass loading [mg.cm-2]"] = self.stack_bd.get("Positive electrode active material volume loading [uL.cm-2]") * self.parameter_values.get("Positive electrode active material true density [kg.m-3]") / 1000
-        self.stack_bd["Positive electrode electrolyte mass loading [mg.cm-2]"] = self.stack_bd.get("Positive electrode electrolyte volume loading [uL.cm-2]") * self.stack_edd.get("Electrolyte density [kg.m-3]") / 1000
-        self.stack_bd["Positive electrode inactive material mass loading [mg.cm-2]"] = self.stack_edd.get("Positive electrode density [kg.m-3]") * self.stack_edd.get("Positive electrode thickness [m]") * 100 - self.stack_bd.get("Positive electrode active material mass loading [mg.cm-2]")
-        self.stack_bd["Positive current collector mass loading [mg.cm-2]"] = self.stack_bd.get("Positive current collector volume loading [uL.cm-2]") * self.stack_edd.get("Positive current collector density [kg.m-3]") / 1000
+        for components in list(stack_bd.keys()):
+            if " volume loading [uL.cm-2]" in components:
+                stack_bd[components.replace(" volume loading [uL.cm-2]", " mass loading [mg.cm-2]")] = stack_bd.get(components) * stack_bd.get(components.replace(" volume loading [uL.cm-2]", " density [mg.uL-1]"))
 
-        return self.stack_bd
+        return stack_bd
 
     def plot_stack_breakdown(self):
 
-        if not hasattr(self, "stack_bd"):
-                self.calculate_stack_breakdown()
+        stack_bd = self.stack_breakdown
 
         heights = [
-        self.stack_bd["Negative current collector mass loading [mg.cm-2]"]/2,
-        self.stack_bd["Negative current collector mass loading [mg.cm-2]"]/2,
-        self.stack_bd["Negative electrode active material mass loading [mg.cm-2]"],
-        self.stack_bd["Negative electrode inactive material mass loading [mg.cm-2]"],
-        self.stack_bd["Negative electrode electrolyte mass loading [mg.cm-2]"],
-        self.stack_bd["Separator mass loading [mg.cm-2]"],
-        self.stack_bd["Separator electrolyte mass loading [mg.cm-2]"],
-        self.stack_bd["Positive electrode active material mass loading [mg.cm-2]"],
-        self.stack_bd["Positive electrode inactive material mass loading [mg.cm-2]"],
-        self.stack_bd["Positive electrode electrolyte mass loading [mg.cm-2]"],
-        self.stack_bd["Positive current collector mass loading [mg.cm-2]"]/2,
-        self.stack_bd["Positive current collector mass loading [mg.cm-2]"]/2
+        stack_bd["Negative current collector mass loading [mg.cm-2]"]/2,
+        stack_bd["Negative current collector mass loading [mg.cm-2]"]/2,
+        stack_bd["Negative electrode active material mass loading [mg.cm-2]"],
+        stack_bd["Negative electrode inactive material mass loading [mg.cm-2]"],
+        stack_bd["Negative electrode electrolyte mass loading [mg.cm-2]"],
+        stack_bd["Separator dry mass loading [mg.cm-2]"],
+        stack_bd["Separator electrolyte mass loading [mg.cm-2]"],
+        stack_bd["Positive electrode active material mass loading [mg.cm-2]"],
+        stack_bd["Positive electrode inactive material mass loading [mg.cm-2]"],
+        stack_bd["Positive electrode electrolyte mass loading [mg.cm-2]"],
+        stack_bd["Positive current collector mass loading [mg.cm-2]"]/2,
+        stack_bd["Positive current collector mass loading [mg.cm-2]"]/2
         ]
         widths = [
-        self.stack_bd["Negative current collector volume loading [uL.cm-2]"]/2,
-        self.stack_bd["Negative current collector volume loading [uL.cm-2]"]/2,
-        self.stack_bd["Negative electrode active material volume loading [uL.cm-2]"],
-        self.stack_bd["Negative electrode inactive material volume loading [uL.cm-2]"],
-        self.stack_bd["Negative electrode electrolyte volume loading [uL.cm-2]"],
-        self.stack_bd["Separator volume loading [uL.cm-2]"],
-        self.stack_bd["Separator electrolyte volume loading [uL.cm-2]"],
-        self.stack_bd["Positive electrode active material volume loading [uL.cm-2]"],
-        self.stack_bd["Positive electrode inactive material volume loading [uL.cm-2]"],
-        self.stack_bd["Positive electrode electrolyte volume loading [uL.cm-2]"],
-        self.stack_bd["Positive current collector volume loading [uL.cm-2]"]/2,
-        self.stack_bd["Positive current collector volume loading [uL.cm-2]"]/2
+        stack_bd["Negative current collector volume loading [uL.cm-2]"]/2,
+        stack_bd["Negative current collector volume loading [uL.cm-2]"]/2,
+        stack_bd["Negative electrode active material volume loading [uL.cm-2]"],
+        stack_bd["Negative electrode inactive material volume loading [uL.cm-2]"],
+        stack_bd["Negative electrode electrolyte volume loading [uL.cm-2]"],
+        stack_bd["Separator dry volume loading [uL.cm-2]"],
+        stack_bd["Separator electrolyte volume loading [uL.cm-2]"],
+        stack_bd["Positive electrode active material volume loading [uL.cm-2]"],
+        stack_bd["Positive electrode inactive material volume loading [uL.cm-2]"],
+        stack_bd["Positive electrode electrolyte volume loading [uL.cm-2]"],
+        stack_bd["Positive current collector volume loading [uL.cm-2]"]/2,
+        stack_bd["Positive current collector volume loading [uL.cm-2]"]/2
         ]
         labels = [
         None, # no label for the negative cc-half out of stack
@@ -392,52 +345,77 @@ class TEA:
         # Display the chart
         plt.show()
 
-lco_input_data = {
-    "Negative electrode active material true density [kg.m-3]": 2266,  # Graphite
-    "Positive electrode active material true density [kg.m-3]": 5050,  # LCO
+nco_input_data = {
+    "Electrolyte density [kg.m-3]": 1276,
+    "Negative electrode active material density [kg.m-3]": 2266,  # Graphite
+    "Positive electrode active material density [kg.m-3]": 4750,  # NCO
 }
-print("Ramadass2004 LCO cell stack breakdown:")
-param_lco_ = pybamm.ParameterValues("Ramadass2004")
-param_lco_.update(lco_input_data, check_already_exists=False)
-tea_lco_ = TEA(param_lco_)
-tea_lco_.plot_stack_breakdown()
-tea_lco_.print_stack_breakdown()
-
-print("Marquis2019 LCO cell stack breakdown:")
-param_lco = pybamm.ParameterValues("Marquis2019")
-param_lco.update(lco_input_data, check_already_exists=False)
-tea_lco = TEA(param_lco)
-tea_lco.plot_stack_breakdown()
-tea_lco.print_stack_breakdown()
+print("Ecker2015 cell stack breakdown:")
+param_nco = pybamm.ParameterValues("Ecker2015")
+param_nco.update(nco_input_data, check_already_exists=False)
+tea_nco = TEA(param_nco)
+tea_nco.plot_stack_breakdown()
+print(tea_nco.stack_energy_densities)
+print(tea_nco.stack_breakdown)
+print(tea_nco.stack_breakdown_dataframe)
 
 nca_input_data = {
-    "Negative electrode active material true density [kg.m-3]": 2266,  # Graphite
-    "Positive electrode active material true density [kg.m-3]": 4450,  # NCA
+    "Electrolyte density [kg.m-3]": 1276,
+    "Negative electrode active material density [kg.m-3]": 2266,  # Graphite
+    "Positive electrode active material density [kg.m-3]": 4450,  # NCA
 }
-print("NCA_Kim2011 LCO cell stack breakdown:")
+print("NCA_Kim2011 cell stack breakdown:")
 param_nca = pybamm.ParameterValues("NCA_Kim2011")
 param_nca.update(nca_input_data, check_already_exists=False)
 tea_nca = TEA(param_nca)
 tea_nca.plot_stack_breakdown()
-tea_nca.print_stack_breakdown()
 
 lfp_input_data = {
-    "Negative electrode active material true density [kg.m-3]": 2266,  # Graphite
-    "Positive electrode active material true density [kg.m-3]": 3600,  # LFP
-    "Negative electrode density [kg.m-3]": 1675,  # Graphite
-    "Positive electrode density [kg.m-3]": 2400,  # LFP
+    
+    "Electrolyte density [kg.m-3]": 1276,
+    "Negative electrode active material density [kg.m-3]": 2266,  # Graphite
+    "Positive electrode active material density [kg.m-3]": 3600,  # LFP
+    "Negative electrode density [kg.m-3]": 1800,  # Graphite
+    "Positive electrode density [kg.m-3]": 2200,  # LFP
     "Separator density [kg.m-3]": 1000,
+    'Negative current collector density [kg.m-3]' : 8960,
+    'Negative current collector thickness [m]': 0.000008,
+    'Positive current collector density [kg.m-3]' : 2700,
+    'Positive current collector thickness [m]': 0.000008,
 }
 
-print("Prada 2013 LCO cell stack breakdown:")
+print("Prada2013 cell stack breakdown:")
+
 param_lfp = pybamm.ParameterValues("Prada2013")
 param_lfp.update(lfp_input_data, check_already_exists=False)
 tea_lfp = TEA(param_lfp)
 tea_lfp.plot_stack_breakdown()
-tea_lfp.print_stack_breakdown()
 
+nmc_input_data = {
+    "Electrolyte density [kg.m-3]": 1276,
+}
 print("Chen2020")
 param_nmc = pybamm.ParameterValues("Chen2020")
+param_nmc.update(nmc_input_data, check_already_exists=False)
 tea_nmc = TEA(param_nmc)
 tea_nmc.plot_stack_breakdown()
-tea_nmc.print_stack_breakdown()
+
+lco_input_data = {
+    "Electrolyte density [kg.m-3]": 1276,
+    "Negative electrode active material density [kg.m-3]": 2266,  # Graphite
+    "Positive electrode active material density [kg.m-3]": 5050,  # LCO
+}
+print("Marquis2019 cell stack breakdown:")
+param_lco = pybamm.ParameterValues("Marquis2019")
+param_lco.update(lco_input_data, check_already_exists=False)
+tea_lco = TEA(param_lco)
+tea_lco.plot_stack_breakdown()
+
+print("Ramadass2004 cell stack breakdown:")
+param_lco_ = pybamm.ParameterValues("Ramadass2004")
+param_lco_.update(lco_input_data, check_already_exists=False)
+tea_lco_ = TEA(param_lco_)
+tea_lco_.plot_stack_breakdown()
+print(tea_lco_.stack_energy_densities)
+print(tea_lco_.stack_breakdown)
+tea_lco_.stack_breakdown_dataframe
