@@ -4,9 +4,8 @@
 
 <div align="center">
 
-[![Documentation Status]
-[![Open In Colab]
-
+[![Documentation Status]]
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pybamm-team/pybamm-tea/blob/main/)
 
 </div>
 
