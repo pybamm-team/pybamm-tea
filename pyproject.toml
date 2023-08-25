@@ -8,8 +8,9 @@ authors = [{name = "Julian Evers", email = "julian.evers2@gmail.com"}]
 readme = "README.md"
 dynamic = ["version", "description"]
 dependencies = [
-    "pydantic<2",
-    "pyparsing",
+    "pybamm",
+    "matplotlib",
+    "pandas",
 ]
 
 [project.optional-dependencies]

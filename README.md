@@ -2,12 +2,6 @@
 
 ![logo](https://raw.githubusercontent.com/pybamm-team/pybamm-tea/main/docs/pybamm_tea_logo.png)
 
-<div align="center">
-
-[![Documentation Status]]
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pybamm-team/pybamm-tea/blob/main/)
-
-</div>
 
 # PyBaMM-TEA
 
@@ -17,6 +11,18 @@ So far, there is a method to visualize mass- and volume loadings of an electrode
 
 ## Installation
 
+Clone the repository using git, or download (and extract) the ZIP file by clicking the green button
+
+```bash
+git clone https://github.com/pybamm-team/PyBaMM-TEA.git
+```
+
+Navigate to the repository directory
+
+```bash
+cd /Users/yourusername/Downloads/PyBaMM-TEA
+```
+
 Create a new virtual environment, or activate an existing one (this example uses the python `venv` module, but you could use Anaconda and a `conda` environment)
 
 ```bash
@@ -24,10 +30,15 @@ python3 -m venv env
 source env/bin/activate
 ```
 
+Install the required packages
+```bash
+pip install -r requirements.txt
+```
+
 Install the `pybamm_tea` module using pip
 
 ```bash
-pip install pybamm_tea
+pip install .
 ```
 
 ## Example usage
@@ -35,7 +46,11 @@ pip install pybamm_tea
 Create a python script similar to that below
 
 ```python
-import pybamm_tea
+import TEA from pybamm_tea
+import pybamm
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import pandas as pd
 
 nco_input_data = {
     "Electrolyte density [kg.m-3]": 1276, # EC:EMC
@@ -49,4 +64,3 @@ tea_nco = TEA(param_nco)
 tea_nco.plot_stack_breakdown()
 tea_nco.stack_breakdown_dataframe()
 ```
-
