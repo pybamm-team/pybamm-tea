@@ -46,7 +46,7 @@ pip install .
 Create a python script similar to that below
 
 ```python
-import TEA from pybamm_tea
+from pybamm_tea import TEA
 import pybamm
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
