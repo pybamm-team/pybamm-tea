@@ -11,56 +11,81 @@ So far, there is a method to visualize mass- and volume loadings of an electrode
 
 ## Installation
 
-Clone the repository using git, or download (and extract) the ZIP file by clicking the green button
+Can you add instructions for mac/linux/windows, e.g.
 
-```bash
-git clone https://github.com/pybamm-team/PyBaMM-TEA.git
-```
+**Linux/Mac OS**
+1. Clone the repository using git
+    ```
+    git clone https://github.com/pybamm-team/PyBaMM-TEA.git
+    ```
+    or download (and extract) the ZIP file by clicking the green button on the top right of the page or use GitHub Desktop.
+2. Change into the pybamm-tea directory
+    ```
+    cd pybamm-tea
+    ```
+3. Create a virtual environment
+    ```
+    virtualenv env
+    ```
+4. Activate the virtual environment
+    ```
+    source env/bin/activate
+    ```
+5. Install the package
+    ```
+    pip install .
+    ```
+    To install the project in editable mode use `pip install -e .`
 
-Navigate to the repository directory
+**Windows**
+To install the package from the local project path on Windows use the following commands:
 
-```bash
-cd /Users/yourusername/Downloads/PyBaMM-TEA
-```
+1. Clone the repository using git
+    ```
+    git clone https://github.com/pybamm-team/PyBaMM-TEA.git
+    ```
+    or download (and extract) the ZIP file by clicking the green button on the top right of the page or use GitHub Desktop.
+2. Change into the pybamm-tea directory
+    ```
+    cd pybamm-tea
+    ```
+3. Create a virtual environment
+    ```
+    virtualenv env
+    ```
+4. Activate the virtual environment
+    ```
+    \path\to\env\Scripts\activate
+    ```
+    where `\path\to\env` is the path to the environment created in step 3 (e.g. `C:\Users\'Username'\env\Scripts\activate.bat`).
+5. Install the package
+    ```
+    pip install .
+    ```
+    To install the project in editable mode use `pip install -e .`
 
-Create a new virtual environment, or activate an existing one (this example uses the python `venv` module, but you could use Anaconda and a `conda` environment)
-
-```bash
-python3 -m venv env
-source env/bin/activate
-```
-
-Install the required packages
-```bash
-pip install -r requirements.txt
-```
-
-Install the `pybamm_tea` module using pip
-
-```bash
-pip install .
-```
+As an alternative, you can set up Windows Subsystem for Linux. This allows you to run a full Linux distribution within Windows.
 
 ## Example usage
 
-Create a python script similar to that below
+Create a script - e.g. to plot a mass- and volume breakdown of an electrode stack - as below or as in the example notebook.
 
-```python
+```
 from pybamm_tea import TEA
 import pybamm
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import pandas as pd
 
+# define a base parameter-set
+param_nco = pybamm.ParameterValues("Ecker2015")
+# provide densities and/or update parameter
 nco_input_data = {
     "Electrolyte density [kg.m-3]": 1276, # EC:EMC
     "Negative electrode active material density [kg.m-3]": 2266,  # Graphite
     "Positive electrode active material density [kg.m-3]": 4750,  # NCO
 }
-param_nco = pybamm.ParameterValues("Ecker2015")
-param_nco.update(nco_input_data, check_already_exists=False)
-
-tea_nco = TEA(param_nco)
+# create a TEA object
+tea_nco = TEA(param_nco, nco_input_data)
+# plot a mass- and volume loading breakdown for an electrode stack
 tea_nco.plot_stack_breakdown()
-tea_nco.stack_breakdown_dataframe()
+# print a dataframe with values of the mass- and volume loading breakdown for an electrode stack
+tea_nco.stack_breakdown_dataframe
 ```

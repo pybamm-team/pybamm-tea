@@ -4,6 +4,4 @@ Analysis of battery cells, built on top of the Python Battery Mathematical
 Modelling library.
 """
 
-from pybamm_tea import TEA
-
 __version__ = "0.0.0"
