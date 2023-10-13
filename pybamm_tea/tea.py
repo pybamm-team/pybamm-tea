@@ -11,14 +11,16 @@ import warnings
 
 class TEA:
     """
-    A Techno-Economic Analysis class for estimation of cell metrics:
+    A Techno-Economic Analysis class for estimation of cell metrics.
 
     Parameters
     ----------
     parameter_values : dict
         A dictionary of parameters and their corresponding numerical values.
         Default is NoneParameters
-    inputs : dict
+    inputs : dict, optional
+        A dictionary of inputs and their corresponding numerical values.
+        Default is None.
     """
 
     def __init__(self, parameter_values=None, inputs=None):
@@ -56,7 +58,10 @@ class TEA:
 
     @property
     def stack_breakdown_dataframe(self):
-        """A dataframe with components, volume-, mass loadings and densities on stack level."""
+        """
+        A dataframe with components, volume-, mass loadings and densities on stack
+        level.
+        """
         if self._stack_breakdown_dataframe is not None:
             return self._stack_breakdown_dataframe
         else:
@@ -74,7 +79,10 @@ class TEA:
 
     @property
     def stack_energy_densities_dataframe(self):
-        """A dataframe with energy densities and summary variables for their calculation."""
+        """
+        A dataframe with energy densities and summary variables for their
+        calculation.
+        """
         if self._stack_energy_densities_dataframe is not None:
             return self._stack_energy_densities_dataframe
         else:
@@ -93,7 +101,10 @@ class TEA:
             return self._capacities_and_potentials_dataframe
 
     def initialize(self):
-        """Initialize class by calculating/updating densities, mass and volume fractions."""
+        """
+        Initialize class by calculating/updating densities, mass and volume
+        fractions.
+        """
         pava = self.parameter_values
         if pava.get("Separator dry density [kg.m-3]") is not None:
             pava["Separator density [kg.m-3]"] = pava.get(
@@ -257,7 +268,8 @@ class TEA:
                 )
             )
             warnings.warn(
-                "Warning: 'Negative electrode thickness [m]' has been calculated from 'Theoretical n/p ratio' and 'Positive electrode thickness [m]'"
+                "Warning: 'Negative electrode thickness [m]' has been calculated from "
+                "'Theoretical n/p ratio' and 'Positive electrode thickness [m]'"
             )
         if (
             pava.get("Theoretical n/p ratio") is not None
@@ -274,7 +286,8 @@ class TEA:
                 * pava.get("Maximum concentration in positive electrode [mol.m-3]")
             )
             warnings.warn(
-                "Warning: 'Negative electrode thickness [m]' has been calculated from 'Theoretical n/p ratio' and 'Positive electrode thickness [m]'"
+                "Warning: 'Negative electrode thickness [m]' has been calculated from "
+                "'Theoretical n/p ratio' and 'Positive electrode thickness [m]'"
             )
         if (
             pava.get("Negative electrode thickness [m]") is not None
@@ -293,10 +306,14 @@ class TEA:
         self.parameter_values = {**self.parameter_values, **pava}
 
     def print_stack_breakdown(self):
-        """A dataframe with components, volume-, mass loadings and densities on stack level."""
+        """
+        A dataframe with components, volume-, mass loadings and densities on stack
+        level.
+        """
         stack_bd = self.stack_breakdown
 
-        # Create a dataframe with columns for components, volume- and mass loadings and densities
+        # Create a dataframe with columns for components, volume- and mass- loadings
+        # and densities
         components = pd.DataFrame(
             [
                 c.replace(" volume loading [uL.cm-2]", "")
@@ -331,7 +348,10 @@ class TEA:
         return df
 
     def print_stack_energy_densities(self):
-        """A dataframe with capacities, energy densities, stoichiometry- and potential windows, n/p ratios, (single-)stack thickness and stack density."""
+        """
+        A dataframe with capacities, energy densities, stoichiometry- and potential-
+        windows, n/p ratios, (single-)stack thickness and stack density.
+        """
         stack_ed = self.stack_energy_densities
         data = [
             {
@@ -370,7 +390,10 @@ class TEA:
         return df
 
     def print_capacities_and_potentials(self):
-        """A dataframe with capacities, energy densities, stoichiometry- and potential windows, n/p ratios, (single-)stack thickness and stack density."""
+        """
+        A dataframe with capacities, energy densities, stoichiometry- and potential
+        windows, n/p ratios, (single-)stack thickness and stack density.
+        """
         stack_ed = self.stack_energy_densities
         data = [
             # stack potentials
@@ -533,12 +556,15 @@ class TEA:
         return df
 
     def calculate_stack_energy_densities(self):
-        """Calculate ideal volumetric and gravimetric energy densities on stack level."""
+        """
+        Calculate ideal volumetric and gravimetric energy densities on stack level.
+        """
         stack_ed = {}  # stack energy densities dict
         pava = None
         pava = self.parameter_values  # parameter values
 
-        # stoichiometries - calculation based on input stoichiometries or cell potential limits
+        # stoichiometries - calculation based on input stoichiometries or cell
+        # potential limits
         if (
             pava.get("Negative electrode stoichiometry at 0%") is not None
             and pava.get("Negative electrode stoichiometry at 100%") is not None
@@ -715,7 +741,8 @@ class TEA:
                     f"{compartment} thickness [m]"
                 )
 
-        # volumetric stack capacity in [Ah.L-1] and volumetric stack energy density in [Wh.L-1]
+        # volumetric stack capacity in [Ah.L-1] and volumetric stack energy density in
+        # [Wh.L-1]
         stack_ed["Volumetric stack capacity [Ah.L-1]"] = (
             stack_ed.get("Capacity [mA.h.cm-2]")
             / stack_ed.get("Stack thickness [m]")
@@ -749,7 +776,8 @@ class TEA:
             "Stack density [kg.m-3]"
         ) / stack_ed.get("Stack thickness [m]")
 
-        # gravimetric stack capacity in [Ah.L-1] and gravimetric stack energy density in [Wh.L-1]
+        # gravimetric stack capacity in [Ah.L-1] and gravimetric stack energy density
+        # in [Wh.L-1]
         stack_ed["Gravimetric stack capacity [Ah.kg-1]"] = (
             stack_ed.get("Volumetric stack capacity [Ah.L-1]")
             / stack_ed.get("Stack density [kg.m-3]")
@@ -862,7 +890,8 @@ class TEA:
                     f"{electrode} dry density [mg.uL-1]"
                 ]
                 warnings.warn(
-                    f"Warning: {electrode} inactive material volume fraction is 0, {electrode} inactive material density is set to 0"
+                    f"Warning: {electrode} inactive material volume fraction is 0, "
+                    f"{electrode} inactive material density is set to 0"
                 )
             else:
                 stack_bd[f"{electrode} inactive material density [mg.uL-1]"] = (
@@ -888,7 +917,8 @@ class TEA:
         if pava.get("Separator porosity") == 1:
             stack_bd["Separator material density [mg.uL-1]"] = 0
             warnings.warn(
-                "Warning: Separator porosity is 1, separator material density is set to 0"
+                "Warning: Separator porosity is 1, separator material density is "
+                "set to 0"
             )
         else:
             stack_bd["Separator material density [mg.uL-1]"] = (
