@@ -22,7 +22,7 @@ class TestTEA(unittest.TestCase):
     def test_stack_energy_densities(self):
         tea_nco = self.ExampleModel()
         self.assertIsInstance(tea_nco.stack_energy_densities, dict)
-        self.assertEqual(len(list(tea_nco.stack_energy_densities.keys())), 24)
+        self.assertEqual(len(list(tea_nco.stack_energy_densities.keys())), 32)
         self.assertEqual(
             tea_nco.stack_energy_densities.get(
                 "Gravimetric stack energy density [Wh.kg-1]"
@@ -34,7 +34,7 @@ class TestTEA(unittest.TestCase):
     def test_stack_breakdown(self):
         tea_nco = self.ExampleModel()
         self.assertIsInstance(tea_nco.stack_breakdown, dict)
-        self.assertEqual(len(list(tea_nco.stack_breakdown.keys())), 58)
+        self.assertEqual(len(list(tea_nco.stack_breakdown.keys())), 62)
 
     # test stack breakdown dataframe
     def test_stack_breakdown_dataframe(self):
@@ -48,7 +48,7 @@ class TestTEA(unittest.TestCase):
     # test stack breakdown plot
     def test_plot_stack_breakdown(self):
         tea_nco = self.ExampleModel()
-        self.assertIsInstance(tea_nco.plot_stack_breakdown(), plt.Figure)
+        self.assertIsInstance(tea_nco.plot_stack_breakdown(testing=True), plt.Figure)
 
 
 if __name__ == "__main__":
