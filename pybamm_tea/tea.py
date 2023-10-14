@@ -333,209 +333,155 @@ class TEA:
     def print_stack_energy_densities(self):
         """A dataframe with capacities, energy densities, stoichiometry- and potential windows, n/p ratios, (single-)stack thickness and stack density."""
         stack_ed = self.stack_energy_densities
-        data = [
-            {
-                "Parameter": "Volumetric energy density",
-                "Unit": "Wh.L-1",
-                "Value": stack_ed.get("Volumetric stack energy density [Wh.L-1]"),
-            },
-            {
-                "Parameter": "Gravimetric energy density",
-                "Unit": "Wh.kg-1",
-                "Value": stack_ed.get("Gravimetric stack energy density [Wh.kg-1]"),
-            },
-            {
-                "Parameter": "Stack average OCP",
-                "Unit": "V",
-                "Value": stack_ed.get("Stack average OCP [V]"),
-            },
-            {
-                "Parameter": "Capacity",
-                "Unit": "mA.h.cm-2",
-                "Value": stack_ed.get("Capacity [mA.h.cm-2]"),
-            },
-            {
-                "Parameter": "(Single-) stack thickness",
-                "Unit": "um",
-                "Value": 10**6 * stack_ed.get("Stack thickness [m]"),
-            },
-            {
-                "Parameter": "Stack density",
-                "Unit": "kg.L-1",
-                "Value": 10**-3 * stack_ed.get("Stack density [kg.m-3]"),
-            },
-        ]
-        # Create the DataFrame from the list of dictionaries
+
+        data = {
+            "Parameter": [
+                "Volumetric energy density",
+                "Gravimetric energy density",
+                "Stack average OCP",
+                "Capacity",
+                "(Single-) stack thickness",
+                "Stack density",
+            ],
+            "Unit": [
+                "Wh.L-1",
+                "Wh.kg-1",
+                "V",
+                "mA.h.cm-2",
+                "um",
+                "kg.L-1",
+            ],
+            "Value": [
+                stack_ed.get("Volumetric stack energy density [Wh.L-1]"),
+                stack_ed.get("Gravimetric stack energy density [Wh.kg-1]"),
+                stack_ed.get("Stack average OCP [V]"),
+                stack_ed.get("Capacity [mA.h.cm-2]"),
+                10**6 * stack_ed.get("Stack thickness [m]"),
+                10**-3 * stack_ed.get("Stack density [kg.m-3]"),
+            ],
+        }
+        # Create the DataFrame from the dictionary
         df = pd.DataFrame(data)
         return df
 
     def print_capacities_and_potentials(self):
         """A dataframe with capacities, energy densities, stoichiometry- and potential windows, n/p ratios, (single-)stack thickness and stack density."""
         stack_ed = self.stack_energy_densities
-        data = [
-            # stack potentials
-            {"Parameter": "Stack potentials", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Stack average OCP",
-                "Unit": "V",
-                "Value": stack_ed.get("Stack average OCP [V]"),
-            },
-            {
-                "Parameter": "Maximal OCP",
-                "Unit": "V",
-                "Value": stack_ed.get("Maximal OCP [V]"),
-            },
-            {
-                "Parameter": "Minimal OCP",
-                "Unit": "V",
-                "Value": stack_ed.get("Minimal OCP [V]"),
-            },
-            # electrode potentials
-            {"Parameter": "Electrode potentials", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Negative electrode average OCP",
-                "Unit": "V",
-                "Value": stack_ed.get("Negative electrode average OCP [V]"),
-            },
-            {
-                "Parameter": "Positive electrode average OCP",
-                "Unit": "V",
-                "Value": stack_ed.get("Positive electrode average OCP [V]"),
-            },
-            # n/p ratio
-            {"Parameter": "n/p ratio's", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Practical n/p ratio",
-                "Unit": "-",
-                "Value": stack_ed.get("Practical n/p ratio"),
-            },
-            {
-                "Parameter": "Theoretical n/p ratio",
-                "Unit": "-",
-                "Value": self.parameter_values.get("Theoretical n/p ratio"),
-            },
-            # stack capacities
-            {"Parameter": "Stack capacities", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Volumetric stack capacity",
-                "Unit": "Ah.L-1",
-                "Value": stack_ed.get("Volumetric stack capacity [Ah.L-1]"),
-            },
-            {
-                "Parameter": "Gravimetric stack capacity",
-                "Unit": "Ah.kg-1",
-                "Value": stack_ed.get("Gravimetric stack capacity [Ah.kg-1]"),
-            },
-            {
-                "Parameter": "Capacity",
-                "Unit": "mA.h.cm-2",
-                "Value": stack_ed.get("Capacity [mA.h.cm-2]"),
-            },
-            # electrode capacities
-            {"Parameter": "Electrode capacities", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Negative electrode theoretical capacity",
-                "Unit": "mA.h.cm-2",
-                "Value": stack_ed.get(
-                    "Negative electrode theoretical capacity [mA.h.cm-2]"
-                ),
-            },
-            {
-                "Parameter": "Positive electrode theoretical capacity",
-                "Unit": "mA.h.cm-2",
-                "Value": stack_ed.get(
-                    "Positive electrode theoretical capacity [mA.h.cm-2]"
-                ),
-            },
-            {
-                "Parameter": "Negative electrode volumetric capacity",
-                "Unit": "mA.h.cm-3",
-                "Value": stack_ed.get(
-                    "Negative electrode volumetric capacity [mA.h.cm-3]"
-                ),
-            },
-            {
-                "Parameter": "Positive electrode volumetric capacity",
-                "Unit": "mA.h.cm-3",
-                "Value": stack_ed.get(
-                    "Positive electrode volumetric capacity [mA.h.cm-3]"
-                ),
-            },
-            {
-                "Parameter": "Negative electrode gravimetric capacity",
-                "Unit": "mA.h.g-1",
-                "Value": stack_ed.get(
-                    "Negative electrode gravimetric capacity [mA.h.g-1]"
-                ),
-            },
-            {
-                "Parameter": "Positive electrode gravimetric capacity",
-                "Unit": "mA.h.g-1",
-                "Value": stack_ed.get(
-                    "Positive electrode gravimetric capacity [mA.h.g-1]"
-                ),
-            },
-            # active material capacities
-            {"Parameter": "Active material capacities", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Negative electrode active material practical capacity",
-                "Unit": "mA.h.g-1",
-                "Value": stack_ed.get(
-                    "Negative electrode active material practical capacity [mA.h.g-1]"
-                ),
-            },
-            {
-                "Parameter": "Positive electrode active material practical capacity",
-                "Unit": "mA.h.g-1",
-                "Value": stack_ed.get(
-                    "Positive electrode active material practical capacity [mA.h.g-1]"
-                ),
-            },
-            {
-                "Parameter": "Negative electrode active material theoretical capacity",
-                "Unit": "mA.h.g-1",
-                "Value": self.parameter_values.get(
-                    "Negative electrode active material capacity [mA.h.g-1]"
-                ),
-            },
-            {
-                "Parameter": "Positive electrode active material theoretical capacity",
-                "Unit": "mA.h.g-1",
-                "Value": self.parameter_values.get(
-                    "Positive electrode active material capacity [mA.h.g-1]"
-                ),
-            },
-            # stoichiometries
-            {"Parameter": "Stoichiometries", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Negative electrode stoichiometry at 0% SoC",
-                "Unit": "-",
-                "Value": stack_ed.get("Negative electrode stoichiometry at 0% SoC"),
-            },
-            {
-                "Parameter": "Negative electrode stoichiometry at 100% SoC",
-                "Unit": "-",
-                "Value": stack_ed.get("Negative electrode stoichiometry at 100% SoC"),
-            },
-            {
-                "Parameter": "Positive electrode stoichiometry at 100% SoC",
-                "Unit": "-",
-                "Value": stack_ed.get("Positive electrode stoichiometry at 100% SoC"),
-            },
-            {
-                "Parameter": "Positive electrode stoichiometry at 0% SoC",
-                "Unit": "-",
-                "Value": stack_ed.get("Positive electrode stoichiometry at 0% SoC"),
-            },
-        ]
-        # Create the DataFrame from the list of dictionaries
+        
+        data = {
+            "Parameter": [
+                "",
+                "Stack average OCP",
+                "Maximal OCP",
+                "Minimal OCP",
+                "",
+                "Negative electrode average OCP",
+                "Positive electrode average OCP",
+                "",
+                "n/p ratio's",
+                "Practical n/p ratio",
+                "Theoretical n/p ratio",
+                "",
+                "Stack capacities",
+                "Volumetric stack capacity",
+                "Gravimetric stack capacity",
+                "Capacity",
+                "",
+                "Electrode capacities",
+                "Negative electrode theoretical capacity",
+                "Positive electrode theoretical capacity",
+                "Negative electrode volumetric capacity",
+                "Positive electrode volumetric capacity",
+                "Negative electrode gravimetric capacity",
+                "Positive electrode gravimetric capacity",
+                "",
+                "Active material capacities",
+                "Negative electrode active material practical capacity",
+                "Positive electrode active material practical capacity",
+                "Negative electrode active material theoretical capacity",
+                "Positive electrode active material theoretical capacity",
+                "",
+                "Stoichiometries",
+                "Negative electrode stoichiometry at 0% SoC",
+                "Negative electrode stoichiometry at 100% SoC",
+                "Positive electrode stoichiometry at 100% SoC",
+                "Positive electrode stoichiometry at 0% SoC",
+            ],
+            "Unit": [
+                "",
+                "V",
+                "V",
+                "V",
+                "",
+                "V",
+                "V",
+                "",
+                "-",
+                "-",
+                "",
+                "A.h.L-1",
+                "A.h.kg-1",
+                "mA.h.cm-2",
+                "",
+                "mA.h.cm-2",
+                "mA.h.cm-2",
+                "A.h.L-1",
+                "A.h.L-1",
+                "A.h.kg-1",
+                "A.h.kg-1",
+                "",
+                "A.h.kg-1",
+                "A.h.kg-1",
+                "A.h.kg-1",
+                "A.h.kg-1",
+                "",
+                "-",
+                "-",
+                "-",
+                "-",
+            ],
+            "Value": [
+                "",
+                stack_ed.get("Stack average OCP [V]"),
+                stack_ed.get("Maximal OCP [V]"),
+                stack_ed.get("Minimal OCP [V]"),
+                "",
+                stack_ed.get("Negative electrode average OCP [V]"),
+                stack_ed.get("Positive electrode average OCP [V]"),
+                "",
+                stack_ed.get("Practical n/p ratio"),
+                self.parameter_values.get("Theoretical n/p ratio"),
+                "",
+                stack_ed.get("Volumetric stack capacity [Ah.L-1]"),
+                stack_ed.get("Gravimetric stack capacity [Ah.kg-1]"),
+                stack_ed.get("Capacity [mA.h.cm-2]"),
+                "",
+                stack_ed.get("Negative electrode theoretical capacity [mA.h.cm-2]"),
+                stack_ed.get("Positive electrode theoretical capacity [mA.h.cm-2]"),
+                stack_ed.get("Negative electrode volumetric capacity [mA.h.cm-3]"),
+                stack_ed.get("Positive electrode volumetric capacity [mA.h.cm-3]"),
+                stack_ed.get("Negative electrode gravimetric capacity [mA.h.g-1]"),
+                stack_ed.get("Positive electrode gravimetric capacity [mA.h.g-1]"),
+                "",
+                stack_ed.get("Negative electrode active material practical capacity [mA.h.g-1]"),
+                stack_ed.get("Positive electrode active material practical capacity [mA.h.g-1]"),
+                self.parameter_values.get("Negative electrode active material capacity [mA.h.g-1]"),
+                self.parameter_values.get("Positive electrode active material capacity [mA.h.g-1]"),
+                "",
+                stack_ed.get("Negative electrode stoichiometry at 0% SoC"),
+                stack_ed.get("Negative electrode stoichiometry at 100% SoC"),
+                stack_ed.get("Positive electrode stoichiometry at 100% SoC"),
+                stack_ed.get("Positive electrode stoichiometry at 0% SoC"),
+            ],
+        }
+        # Create the DataFrame from the dictionary
         df = pd.DataFrame(data)
         return df
-
+        
+    
     def calculate_stack_energy_densities(self):
         """Calculate ideal volumetric and gravimetric energy densities on stack level."""
         stack_ed = {}  # stack energy densities dict
-        pava = None
         pava = self.parameter_values  # parameter values
 
         # stoichiometries - calculation based on input stoichiometries or cell potential limits
