@@ -192,20 +192,20 @@ class TEA:
                     "Electrolyte density [kg.m-3]"
                 )
             if (
-                pava.get(f"{electrode} active material capacity [mA.h.g-1]") is not None
+                pava.get(f"{electrode} active material capacity [A.h.kg-1]") is not None
                 and pava.get(f"{electrode} active material density [kg.m-3]")
                 is not None
             ):
                 if electrode == "Negative electrode":
                     pava["Maximum concentration in negative electrode [mol.m-3]"] = (
-                        pava.get(f"{electrode} active material capacity [mA.h.g-1]")
+                        pava.get(f"{electrode} active material capacity [A.h.kg-1]")
                         * pava.get(f"{electrode} active material density [kg.m-3]")
                         * 3600
                         / 96485
                     )
                 elif electrode == "Positive electrode":
                     pava["Maximum concentration in positive electrode [mol.m-3]"] = (
-                        pava.get(f"{electrode} active material capacity [mA.h.g-1]")
+                        pava.get(f"{electrode} active material capacity [A.h.kg-1]")
                         * pava.get(f"{electrode} active material density [kg.m-3]")
                         * 3600
                         / 96485
@@ -216,7 +216,7 @@ class TEA:
                     and pava.get(f"{electrode} active material density [kg.m-3]")
                     is not None
                 ):
-                    pava[f"{electrode} active material capacity [mA.h.g-1]"] = (
+                    pava[f"{electrode} active material capacity [A.h.kg-1]"] = (
                         pava.get(
                             "Maximum concentration in negative electrode [mol.m-3]"
                         )
@@ -229,7 +229,7 @@ class TEA:
                     and pava.get(f"{electrode} active material density [kg.m-3]")
                     is not None
                 ):
-                    pava[f"{electrode} active material capacity [mA.h.g-1]"] = (
+                    pava[f"{electrode} active material capacity [A.h.kg-1]"] = (
                         pava.get(
                             "Maximum concentration in positive electrode [mol.m-3]"
                         )
@@ -352,8 +352,8 @@ class TEA:
                 "kg.L-1",
             ],
             "Value": [
-                stack_ed.get("Volumetric stack energy density [Wh.L-1]"),
-                stack_ed.get("Gravimetric stack energy density [Wh.kg-1]"),
+                stack_ed.get("Volumetric stack energy density [W.h.L-1]"),
+                stack_ed.get("Gravimetric stack energy density [W.h.kg-1]"),
                 stack_ed.get("Stack average OCP [V]"),
                 stack_ed.get("Capacity [mA.h.cm-2]"),
                 10**6 * stack_ed.get("Stack thickness [m]"),
@@ -367,113 +367,60 @@ class TEA:
     def print_capacities_and_potentials(self):
         """A dataframe with capacities, energy densities, stoichiometry- and potential windows, n/p ratios, (single-)stack thickness and stack density."""
         stack_ed = self.stack_energy_densities
-        
+
+        parameters = [
+            "Stack potentials:",
+            "Stack average OCP [V]",
+            "Minimal OCP [V]",
+            "Maximal OCP [V]",
+            "Electrode potentials:",
+            "Negative electrode average OCP [V]",
+            "Positive electrode average OCP [V]",
+            "n/p ratio's:",
+            "Practical n/p ratio",
+            "Theoretical n/p ratio",
+            "Stack capacities:",
+            "Volumetric stack capacity [A.h.L-1]",
+            "Gravimetric stack capacity [A.h.kg-1]",
+            "Capacity [mA.h.cm-2]",
+            "Electrode capacities:",
+            "Negative electrode theoretical capacity [mA.h.cm-2]",
+            "Positive electrode theoretical capacity [mA.h.cm-2]",
+            "Negative electrode volumetric capacity [A.h.L-1]",
+            "Positive electrode volumetric capacity [A.h.L-1]",
+            "Negative electrode gravimetric capacity [A.h.kg-1]",
+            "Positive electrode gravimetric capacity [A.h.kg-1]",
+            "Active material capacities:",
+            "Negative electrode active material practical capacity [A.h.kg-1]",
+            "Positive electrode active material practical capacity [A.h.kg-1]",
+            "Negative electrode active material capacity [A.h.kg-1]",
+            "Positive electrode active material capacity [A.h.kg-1]",
+            "Stoichiometries:",
+            "Negative electrode stoichiometry at 0% SoC",
+            "Negative electrode stoichiometry at 100% SoC",
+            "Positive electrode stoichiometry at 100% SoC",
+            "Positive electrode stoichiometry at 0% SoC",
+        ]
+
+        names = []
+        units = []
+        values = []
+        for parameter in parameters:
+            if "[" in parameter:
+                name, unit = parameter.split("[")
+                names.append(name.strip())
+                units.append(unit.rstrip(']'))
+            else:
+                names.append(parameter.strip())
+                units.append("")
+            values.append(stack_ed.get(parameter, self.parameter_values.get(parameter, "")))
+
         data = {
-            "Parameter": [
-                "",
-                "Stack average OCP",
-                "Maximal OCP",
-                "Minimal OCP",
-                "",
-                "Negative electrode average OCP",
-                "Positive electrode average OCP",
-                "",
-                "n/p ratio's",
-                "Practical n/p ratio",
-                "Theoretical n/p ratio",
-                "",
-                "Stack capacities",
-                "Volumetric stack capacity",
-                "Gravimetric stack capacity",
-                "Capacity",
-                "",
-                "Electrode capacities",
-                "Negative electrode theoretical capacity",
-                "Positive electrode theoretical capacity",
-                "Negative electrode volumetric capacity",
-                "Positive electrode volumetric capacity",
-                "Negative electrode gravimetric capacity",
-                "Positive electrode gravimetric capacity",
-                "",
-                "Active material capacities",
-                "Negative electrode active material practical capacity",
-                "Positive electrode active material practical capacity",
-                "Negative electrode active material theoretical capacity",
-                "Positive electrode active material theoretical capacity",
-                "",
-                "Stoichiometries",
-                "Negative electrode stoichiometry at 0% SoC",
-                "Negative electrode stoichiometry at 100% SoC",
-                "Positive electrode stoichiometry at 100% SoC",
-                "Positive electrode stoichiometry at 0% SoC",
-            ],
-            "Unit": [
-                "",
-                "V",
-                "V",
-                "V",
-                "",
-                "V",
-                "V",
-                "",
-                "-",
-                "-",
-                "",
-                "A.h.L-1",
-                "A.h.kg-1",
-                "mA.h.cm-2",
-                "",
-                "mA.h.cm-2",
-                "mA.h.cm-2",
-                "A.h.L-1",
-                "A.h.L-1",
-                "A.h.kg-1",
-                "A.h.kg-1",
-                "",
-                "A.h.kg-1",
-                "A.h.kg-1",
-                "A.h.kg-1",
-                "A.h.kg-1",
-                "",
-                "-",
-                "-",
-                "-",
-                "-",
-            ],
-            "Value": [
-                "",
-                stack_ed.get("Stack average OCP [V]"),
-                stack_ed.get("Maximal OCP [V]"),
-                stack_ed.get("Minimal OCP [V]"),
-                "",
-                stack_ed.get("Negative electrode average OCP [V]"),
-                stack_ed.get("Positive electrode average OCP [V]"),
-                "",
-                stack_ed.get("Practical n/p ratio"),
-                self.parameter_values.get("Theoretical n/p ratio"),
-                "",
-                stack_ed.get("Volumetric stack capacity [Ah.L-1]"),
-                stack_ed.get("Gravimetric stack capacity [Ah.kg-1]"),
-                stack_ed.get("Capacity [mA.h.cm-2]"),
-                "",
-                stack_ed.get("Negative electrode theoretical capacity [mA.h.cm-2]"),
-                stack_ed.get("Positive electrode theoretical capacity [mA.h.cm-2]"),
-                stack_ed.get("Negative electrode volumetric capacity [mA.h.cm-3]"),
-                stack_ed.get("Positive electrode volumetric capacity [mA.h.cm-3]"),
-                stack_ed.get("Negative electrode gravimetric capacity [mA.h.g-1]"),
-                stack_ed.get("Positive electrode gravimetric capacity [mA.h.g-1]"),
-                "",
-                stack_ed.get("Negative electrode active material practical capacity [mA.h.g-1]"),
-                stack_ed.get("Positive electrode active material practical capacity [mA.h.g-1]"),
-                self.parameter_values.get("Negative electrode active material capacity [mA.h.g-1]"),
-                self.parameter_values.get("Positive electrode active material capacity [mA.h.g-1]"),
-                "",
-                stack_ed.get("Negative electrode stoichiometry at 0% SoC"),
-                stack_ed.get("Negative electrode stoichiometry at 100% SoC"),
-                stack_ed.get("Positive electrode stoichiometry at 100% SoC"),
-                stack_ed.get("Positive electrode stoichiometry at 0% SoC"),
-            ],
-        }
+            "Parameter": names,
+            "Unit": units,
+            "Value": values,
+            }
+        
         # Create the DataFrame from the dictionary
         df = pd.DataFrame(data)
         return df
@@ -530,7 +477,7 @@ class TEA:
         electrodes = ["Negative electrode", "Positive electrode"]
         electrodes_ = ["negative electrode", "positive electrode"]
         for electrode, electrode_ in zip(electrodes, electrodes_):
-            stack_ed[f"{electrode} volumetric capacity [mA.h.cm-3]"] = (
+            stack_ed[f"{electrode} volumetric capacity [A.h.L-1]"] = (
                 pava.get(f"Maximum concentration in {electrode_} [mol.m-3]")
                 * 96485
                 / 3.6
@@ -549,13 +496,13 @@ class TEA:
                     )
                 )
             )
-            stack_ed[f"{electrode} gravimetric capacity [mA.h.g-1]"] = (
-                stack_ed.get(f"{electrode} volumetric capacity [mA.h.cm-3]")
+            stack_ed[f"{electrode} gravimetric capacity [A.h.kg-1]"] = (
+                stack_ed.get(f"{electrode} volumetric capacity [A.h.L-1]")
                 / pava.get(f"{electrode} density [kg.m-3]")
                 * 1000
             )  # cm3.L-1
-            stack_ed[f"{electrode} active material practical capacity [mA.h.g-1]"] = (
-                stack_ed.get(f"{electrode} volumetric capacity [mA.h.cm-3]")
+            stack_ed[f"{electrode} active material practical capacity [A.h.kg-1]"] = (
+                stack_ed.get(f"{electrode} volumetric capacity [A.h.L-1]")
                 / pava.get(f"{electrode} active material volume fraction")
                 / pava.get(f"{electrode} active material density [kg.m-3]")
                 * 1000
@@ -563,7 +510,7 @@ class TEA:
             stack_ed[f"{electrode} capacity [mA.h.cm-2]"] = pava.get(
                 f"{electrode} capacity [mA.h.cm-2]"
             ) or (
-                stack_ed.get(f"{electrode} volumetric capacity [mA.h.cm-3]")
+                stack_ed.get(f"{electrode} volumetric capacity [A.h.L-1]")
                 * pava.get(f"{electrode} thickness [m]")
                 * 100
             )  # cm.m-1
@@ -662,14 +609,14 @@ class TEA:
                 )
 
         # volumetric stack capacity in [Ah.L-1] and volumetric stack energy density in [Wh.L-1]
-        stack_ed["Volumetric stack capacity [Ah.L-1]"] = (
+        stack_ed["Volumetric stack capacity [A.h.L-1]"] = (
             stack_ed.get("Capacity [mA.h.cm-2]")
             / stack_ed.get("Stack thickness [m]")
             / 100
         )
-        stack_ed["Volumetric stack energy density [Wh.L-1]"] = (
+        stack_ed["Volumetric stack energy density [W.h.L-1]"] = (
             stack_ed.get("Stack average OCP [V]")
-            * stack_ed["Volumetric stack capacity [Ah.L-1]"]
+            * stack_ed["Volumetric stack capacity [A.h.L-1]"]
         )
 
         # stack density
@@ -696,13 +643,13 @@ class TEA:
         ) / stack_ed.get("Stack thickness [m]")
 
         # gravimetric stack capacity in [Ah.L-1] and gravimetric stack energy density in [Wh.L-1]
-        stack_ed["Gravimetric stack capacity [Ah.kg-1]"] = (
-            stack_ed.get("Volumetric stack capacity [Ah.L-1]")
+        stack_ed["Gravimetric stack capacity [A.h.kg-1]"] = (
+            stack_ed.get("Volumetric stack capacity [A.h.L-1]")
             / stack_ed.get("Stack density [kg.m-3]")
             * 1000
         )
-        stack_ed["Gravimetric stack energy density [Wh.kg-1]"] = (
-            stack_ed.get("Volumetric stack energy density [Wh.L-1]")
+        stack_ed["Gravimetric stack energy density [W.h.kg-1]"] = (
+            stack_ed.get("Volumetric stack energy density [W.h.L-1]")
             / stack_ed.get("Stack density [kg.m-3]")
             * 1000
         )
