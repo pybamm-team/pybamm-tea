@@ -1,5 +1,5 @@
 
-![PyBaMM-TEA-logo](https://raw.githubusercontent.com/pybamm-team/pybamm-tea/main/docs/pybamm_tea_logo.png)
+![PyBaMM-TEA-logo](https://raw.githubusercontent.com/pybamm-team/pybamm-tea/main/docs/_static/pybamm_tea_logo.png)
 
 
 # PyBaMM-TEA
