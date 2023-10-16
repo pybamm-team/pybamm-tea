@@ -996,8 +996,8 @@ class TEA:
             )
 
         # Set up the figure and axis objects
-        fig = plt.figure(figsize=(8, 4), facecolor="white")
-        ax = fig.add_axes([0.1, 0.25, 0.8, 0.6])
+        fig = plt.figure(figsize=(12, 4), facecolor="white")
+        ax = fig.add_axes([0.1, 0.2, 0.6, 0.6])
 
         # Initialize the x position
         x_pos = -widths[0]
@@ -1055,7 +1055,6 @@ class TEA:
         ax.legend(handles=legend_handles, loc="upper left", bbox_to_anchor=(1.05, 1))
 
         # Display the chart
-        plt.tight_layout()
         if testing is False:
             plt.show()
 
