@@ -1,13 +1,10 @@
-#
 
 ![PyBaMM-TEA-logo](https://github.com/pybamm-team/pybamm-tea/blob/main/docs/_static/pybamm_tea_logo.PNG)
 
 
 # PyBaMM-TEA
 
-This repository contains the work of the "Google Summer of Code" project on a techno-economic analysis library for battery cells, which can be combined with PyBaMM's functionality.
-So far, there is a method to visualize mass- and volume loadings of an electrode stack and to estimate energy densities without simulation. The project further aims to estimate cell metrics with simulations (e.g. a Ragone plot) and manufacturing metrics with a Process-based Cost Model.
-
+This repository contains the work of the "Google Summer of Code" project on a techno-economic analysis library for battery cells, which can be combined with PyBaMM's functionality. So far, there is a method to visualize mass- and volume- loadings of an electrode stack and to estimate energy densities without simulation. The project further aims to estimate cell metrics with simulations (e.g. a Ragone plot) and manufacturing metrics with a Process-based Cost Model.
 
 ## Installation
 We recommend installing within a [virtual environment](https://docs.python.org/3/tutorial/venv.html) in order to not alter any python distribution files on your machine.
@@ -94,4 +91,14 @@ tea_nco.plot_stack_breakdown()
 # Print a dataframe with values of the mass- and volume-loading breakdown for an
 # electrode stack
 print(tea_nco.stack_breakdown_dataframe)
+```
+
+## Documentation
+API documentation for the `pybamm_tea` package can be built locally using [Sphinx](https://www.sphinx-doc.org/en/master/). To build the documentation first [clone the repository](https://github.com/git-guides/git-clone), then run the following command:
+```bash
+sphinx-build docs docs/_build/html  
+```
+This will generate a number of html files in the `docs/_build/html` directory. To view the documentation, open the file `docs/_build/html/index.html` in a web browser, e.g. by running
+```bash
+open docs/_build/html/index.html
 ```
