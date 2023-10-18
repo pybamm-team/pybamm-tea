@@ -1,6 +1,6 @@
 #
 
-![logo](pybamm_tea_logo.png)
+![PyBaMM-TEA-logo](https://github.com/pybamm-team/pybamm-tea/blob/main/docs/_static/pybamm_tea_logo.PNG)
 
 
 # PyBaMM-TEA

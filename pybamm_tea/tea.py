@@ -334,33 +334,31 @@ class TEA:
         """A dataframe with capacities, energy densities, stoichiometry- and potential windows, n/p ratios, (single-)stack thickness and stack density."""
         stack_ed = self.stack_energy_densities
 
+        parameters = [
+            "Volumetric stack energy density [W.h.L-1]",
+            "Gravimetric stack energy density [W.h.kg-1]",
+            "Stack average OCP [V]",
+            "Capacity [mA.h.cm-2]",
+            "Stack thickness [um]",
+            "Stack density [kg.L-1]",
+        ]
+
+        names = []
+        units = []
+        values = []
+
+        for parameter in parameters:
+            name, unit = parameter.split("[")
+            names.append(name.strip())
+            units.append(unit.rstrip(']'))
+            values.append(stack_ed.get(parameter))
+
         data = {
-            "Parameter": [
-                "Volumetric energy density",
-                "Gravimetric energy density",
-                "Stack average OCP",
-                "Capacity",
-                "(Single-) stack thickness",
-                "Stack density",
-            ],
-            "Unit": [
-                "Wh.L-1",
-                "Wh.kg-1",
-                "V",
-                "mA.h.cm-2",
-                "um",
-                "kg.L-1",
-            ],
-            "Value": [
-                stack_ed.get("Volumetric stack energy density [W.h.L-1]"),
-                stack_ed.get("Gravimetric stack energy density [W.h.kg-1]"),
-                stack_ed.get("Stack average OCP [V]"),
-                stack_ed.get("Capacity [mA.h.cm-2]"),
-                10**6 * stack_ed.get("Stack thickness [m]"),
-                10**-3 * stack_ed.get("Stack density [kg.m-3]"),
-            ],
-        }
-        # Create the DataFrame from the dictionary
+            "Parameter": names,
+            "Unit": units,
+            "Value": values,
+            }
+        
         df = pd.DataFrame(data)
         return df
 
@@ -369,33 +367,26 @@ class TEA:
         stack_ed = self.stack_energy_densities
 
         parameters = [
-            "Stack potentials:",
             "Stack average OCP [V]",
             "Minimal OCP [V]",
             "Maximal OCP [V]",
-            "Electrode potentials:",
             "Negative electrode average OCP [V]",
             "Positive electrode average OCP [V]",
-            "n/p ratio's:",
             "Practical n/p ratio",
             "Theoretical n/p ratio",
-            "Stack capacities:",
             "Volumetric stack capacity [A.h.L-1]",
             "Gravimetric stack capacity [A.h.kg-1]",
             "Capacity [mA.h.cm-2]",
-            "Electrode capacities:",
             "Negative electrode theoretical capacity [mA.h.cm-2]",
             "Positive electrode theoretical capacity [mA.h.cm-2]",
             "Negative electrode volumetric capacity [A.h.L-1]",
             "Positive electrode volumetric capacity [A.h.L-1]",
             "Negative electrode gravimetric capacity [A.h.kg-1]",
             "Positive electrode gravimetric capacity [A.h.kg-1]",
-            "Active material capacities:",
             "Negative electrode active material practical capacity [A.h.kg-1]",
             "Positive electrode active material practical capacity [A.h.kg-1]",
             "Negative electrode active material capacity [A.h.kg-1]",
             "Positive electrode active material capacity [A.h.kg-1]",
-            "Stoichiometries:",
             "Negative electrode stoichiometry at 0% SoC",
             "Negative electrode stoichiometry at 100% SoC",
             "Positive electrode stoichiometry at 100% SoC",
@@ -413,7 +404,7 @@ class TEA:
             else:
                 names.append(parameter.strip())
                 units.append("")
-            values.append(stack_ed.get(parameter, self.parameter_values.get(parameter, "")))
+            values.append(stack_ed.get(parameter, self.parameter_values.get(parameter)))
 
         data = {
             "Parameter": names,
@@ -421,7 +412,6 @@ class TEA:
             "Value": values,
             }
         
-        # Create the DataFrame from the dictionary
         df = pd.DataFrame(data)
         return df
         
@@ -653,6 +643,10 @@ class TEA:
             / stack_ed.get("Stack density [kg.m-3]")
             * 1000
         )
+
+        # convert units
+        stack_ed["Stack thickness [um]"] = 10**6 * stack_ed.get("Stack thickness [m]")
+        stack_ed["Stack density [kg.L-1]"] = 10**-3 * stack_ed.get("Stack density [kg.m-3]")
 
         return stack_ed
 
