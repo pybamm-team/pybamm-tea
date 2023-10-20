@@ -22,10 +22,10 @@ class TestTEA(unittest.TestCase):
     def test_stack_energy_densities(self):
         tea_nco = self.ExampleModel()
         self.assertIsInstance(tea_nco.stack_energy_densities, dict)
-        self.assertEqual(len(list(tea_nco.stack_energy_densities.keys())), 32)
+        self.assertEqual(len(list(tea_nco.stack_energy_densities.keys())), 34)
         self.assertEqual(
             tea_nco.stack_energy_densities.get(
-                "Gravimetric stack energy density [Wh.kg-1]"
+                "Gravimetric stack energy density [W.h.kg-1]"
             ).round(),
             200.0,
         )
