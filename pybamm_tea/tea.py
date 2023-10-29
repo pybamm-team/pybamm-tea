@@ -25,69 +25,60 @@ class TEA:
 
     def __init__(self, parameter_values=None, inputs=None):
         """Initialize class by updating parameters with inputs."""
-        self.inputs_ = inputs.copy() if inputs else {}
-        self.parameter_values_ = parameter_values.copy() if parameter_values else {}
-        self._reset_attributes()
-
-    def __call__(self):
-        """Reset all attributes to their initial values and update with new inputs."""
-        self._reset_attributes()
-
-    def _reset_attributes(self):
-        """Reset all attributes to their initial values and update with new inputs."""
-        self.parameter_values = pybamm.ParameterValues({})
-        self.parameter_values = {**self.parameter_values, **self.parameter_values_}
-        self.parameter_values = {**self.parameter_values, **self.inputs_}
-        if self.parameter_values.get("Electrolyte density [kg.m-3]") is None:
-            raise ValueError("Missing 'Electrolyte density [kg.m-3]'")
-        self._stack_breakdown = None
-        self._stack_breakdown_dataframe = None
-        self._stack_energy_densities = None
-        self._stack_energy_densities_dataframe = None
+        if parameter_values is None:
+            self.parameter_values = pybamm.ParameterValues({})
+        else:
+            self.parameter_values = pybamm.ParameterValues(parameter_values)
+        if inputs is not None:
+            self.parameter_values.update(inputs, check_already_exists=False)
+        self._masses_and_volumes = None
+        self._masses_and_volumes_dataframe = None
+        self._stack_energy = None
+        self._stack_energy_dataframe = None
         self._capacities_and_potentials_dataframe = None
         self.initialize()
 
     @property
-    def stack_breakdown(self):
+    def masses_and_volumes(self):
         """A breakdown of volume- and mass loadings on stack level."""
-        if self._stack_breakdown is not None:
-            return self._stack_breakdown
+        if self._masses_and_volumes is not None:
+            return self._masses_and_volumes
         else:
-            self._stack_breakdown = self.calculate_stack_breakdown()
-            return self._stack_breakdown
+            self._masses_and_volumes = self.calculate_masses_and_volumes()
+            return self._masses_and_volumes
 
     @property
-    def stack_breakdown_dataframe(self):
+    def masses_and_volumes_dataframe(self):
         """
         A dataframe with components, volume-, mass loadings and densities on stack
         level.
         """
-        if self._stack_breakdown_dataframe is not None:
-            return self._stack_breakdown_dataframe
+        if self._masses_and_volumes_dataframe is not None:
+            return self._masses_and_volumes_dataframe
         else:
-            self._stack_breakdown_dataframe = self.print_stack_breakdown()
-            return self._stack_breakdown_dataframe
+            self._masses_and_volumes_dataframe = self.print_masses_and_volumes()
+            return self._masses_and_volumes_dataframe
 
     @property
-    def stack_energy_densities(self):
+    def stack_energy(self):
         """Energy densities and parameters for calculation on stack level."""
-        if self._stack_energy_densities is not None:
-            return self._stack_energy_densities
+        if self._stack_energy is not None:
+            return self._stack_energy
         else:
-            self._stack_energy_densities = self.calculate_stack_energy_densities()
-            return self._stack_energy_densities
+            self._stack_energy = self.calculate_stack_energy()
+            return self._stack_energy
 
     @property
-    def stack_energy_densities_dataframe(self):
+    def stack_energy_dataframe(self):
         """
         A dataframe with energy densities and summary variables for their
         calculation.
         """
-        if self._stack_energy_densities_dataframe is not None:
-            return self._stack_energy_densities_dataframe
+        if self._stack_energy_dataframe is not None:
+            return self._stack_energy_dataframe
         else:
-            self._stack_energy_densities_dataframe = self.print_stack_energy_densities()
-            return self._stack_energy_densities_dataframe
+            self._stack_energy_dataframe = self.print_stack_energy()
+            return self._stack_energy_dataframe
 
     @property
     def capacities_and_potentials_dataframe(self):
@@ -105,27 +96,29 @@ class TEA:
         Initialize class by calculating/updating densities, mass and volume
         fractions.
         """
-        pava = self.parameter_values
-        if pava.get("Separator dry density [kg.m-3]") is not None:
+        pava = dict(self.parameter_values)
+        if pava.get("Separator dry density [kg.m-3]") is not None and pava.get("Separator material density [kg.m-3]") is None:
+        # calculate separator density based on dry density, porosity and electrolyte density
             pava["Separator density [kg.m-3]"] = pava.get(
                 "Separator porosity"
-            ) * pava.get("Electrolyte density [kg.m-3]", 0) + pava.get(
-                "Separator dry density [kg.m-3]", 0
+            ) * pava.get("Electrolyte density [kg.m-3]") + pava.get(
+                "Separator dry density [kg.m-3]"
             )
-        if pava.get("Separator material density [kg.m-3]") is not None:
+        if pava.get("Separator material density [kg.m-3]") is not None and pava.get("Separator dry density [kg.m-3]") is None:
+        # calculate separator density based on material density, porosity and electrolyte density
             pava["Separator density [kg.m-3]"] = pava.get(
                 "Separator porosity"
-            ) * pava.get("Electrolyte density [kg.m-3]", 0) + (
+            ) * pava.get("Electrolyte density [kg.m-3]") + (
                 1 - pava.get("Separator porosity")
             ) * pava.get(
-                "Separator material density [kg.m-3]", 0
+                "Separator material density [kg.m-3]"
             )
         electrodes = ["Negative electrode", "Positive electrode"]
         for electrode in electrodes:
             if (
                 (
-                    pava.get(f"{electrode} active material volume fraction", 0)
-                    + pava.get(f"{electrode} porosity", 0)
+                    pava.get(f"{electrode} active material volume fraction")
+                    + pava.get(f"{electrode} porosity")
                     == 1
                 )
                 and pava.get(f"{electrode} binder dry mass fraction") is None
@@ -133,15 +126,16 @@ class TEA:
                 is None
                 and pava.get(f"{electrode} active material dry mass fraction") is None
             ):
+                # calculate electrode active material and dry density based on electrode density, porosity and electrolyte density
                 pava[f"{electrode} dry density [kg.m-3]"] = pava.get(
                     f"{electrode} density [kg.m-3]"
                 ) - pava.get(f"{electrode} porosity") * pava.get(
-                    "Electrolyte density [kg.m-3]", 0
+                    "Electrolyte density [kg.m-3]"
                 )
                 pava[f"{electrode} active material density [kg.m-3]"] = pava.get(
                     f"{electrode} dry density [kg.m-3]"
                 )
-                print(
+                warnings.warn(
                     f"Warning: '{electrode} active material density [kg.m-3]' and '{electrode} dry density [kg.m-3]' have been calulated from;'Electrolyte density [kg.m-3]', '{electrode} porosity' and '{electrode} density [kg.m-3]'"
                 )
             if (
@@ -152,11 +146,13 @@ class TEA:
                 and pava.get(f"{electrode} conductive additive density [kg.m-3]")
                 is not None
             ):
+                # calculate active material dry mass fraction based on binder and conductive additive dry mass fractions
                 pava[f"{electrode} active material dry mass fraction"] = (
                     1
                     - pava.get(f"{electrode} binder dry mass fraction")
                     - pava.get(f"{electrode} conductive additive dry mass fraction")
                 )
+                # calculate inactive material density based on binder and conductive additive dry mass fractions and densities
                 pava[f"{electrode} inactive material density [kg.m-3]"] = (
                     pava.get(f"{electrode} binder dry mass fraction")
                     + pava.get(f"{electrode} conductive additive dry mass fraction")
@@ -173,6 +169,7 @@ class TEA:
                 and pava.get(f"{electrode} inactive material density [kg.m-3]")
                 is not None
             ):
+                # calculate active material volume fraction based on active material dry mass fraction, porosity and active&inactive material densities
                 pava[f"{electrode} active material volume fraction"] = (
                     1 - pava.get(f"{electrode} porosity")
                 ) * (
@@ -188,6 +185,7 @@ class TEA:
                         / pava.get(f"{electrode} inactive material density [kg.m-3]")
                     )
                 )
+                # calculate electrode dry density based on active material dry mass fraction, porosity and active&inactive material densities
                 pava[f"{electrode} dry density [kg.m-3]"] = pava.get(
                     f"{electrode} active material volume fraction"
                 ) * pava.get(f"{electrode} active material density [kg.m-3]") + (
@@ -197,37 +195,40 @@ class TEA:
                 ) * pava.get(
                     f"{electrode} inactive material density [kg.m-3]"
                 )
+                # calculate electrode density based on dry density, porosity and electrolyte density
                 pava[f"{electrode} density [kg.m-3]"] = pava.get(
                     f"{electrode} dry density [kg.m-3]"
                 ) + pava.get(f"{electrode} porosity") * pava.get(
                     "Electrolyte density [kg.m-3]"
                 )
             if (
-                pava.get(f"{electrode} active material capacity [mA.h.g-1]") is not None
+                pava.get(f"{electrode} active material capacity [A.h.kg-1]") is not None
                 and pava.get(f"{electrode} active material density [kg.m-3]")
                 is not None
             ):
+                # calculate maximum concentration based on gravimetric capacity and density of active material
                 if electrode == "Negative electrode":
                     pava["Maximum concentration in negative electrode [mol.m-3]"] = (
-                        pava.get(f"{electrode} active material capacity [mA.h.g-1]")
+                        pava.get(f"{electrode} active material capacity [A.h.kg-1]")
                         * pava.get(f"{electrode} active material density [kg.m-3]")
                         * 3600
                         / 96485
                     )
                 elif electrode == "Positive electrode":
                     pava["Maximum concentration in positive electrode [mol.m-3]"] = (
-                        pava.get(f"{electrode} active material capacity [mA.h.g-1]")
+                        pava.get(f"{electrode} active material capacity [A.h.kg-1]")
                         * pava.get(f"{electrode} active material density [kg.m-3]")
                         * 3600
                         / 96485
                     )
             else:
+                # calculate gravimetric active material capacity based on maximum concentration and density of active material
                 if (
                     electrode == "Negative electrode"
                     and pava.get(f"{electrode} active material density [kg.m-3]")
                     is not None
                 ):
-                    pava[f"{electrode} active material capacity [mA.h.g-1]"] = (
+                    pava[f"{electrode} active material capacity [A.h.kg-1]"] = (
                         pava.get(
                             "Maximum concentration in negative electrode [mol.m-3]"
                         )
@@ -240,7 +241,7 @@ class TEA:
                     and pava.get(f"{electrode} active material density [kg.m-3]")
                     is not None
                 ):
-                    pava[f"{electrode} active material capacity [mA.h.g-1]"] = (
+                    pava[f"{electrode} active material capacity [A.h.kg-1]"] = (
                         pava.get(
                             "Maximum concentration in positive electrode [mol.m-3]"
                         )
@@ -257,6 +258,7 @@ class TEA:
             and pava.get("Negative electrode thickness [m]") is None
             and pava.get("Positive electrode thickness [m]") is not None
         ):
+            # calculate negative electrode thickness based on theoretical NPR and positive electrode thickness
             pava["Negative electrode thickness [m]"] = (
                 pava.get("Theoretical n/p ratio")
                 * pava.get("Positive electrode thickness [m]")
@@ -276,6 +278,7 @@ class TEA:
             and pava.get("Negative electrode thickness [m]") is not None
             and pava.get("Positive electrode thickness [m]") is None
         ):
+            # calculate positive electrode thickness based on theoretical NPR and negative electrode thickness
             pava["Positive electrode thickness [m]"] = (
                 pava.get("Negative electrode thickness [m]")
                 * pava.get("Negative electrode active material volume fraction")
@@ -286,13 +289,14 @@ class TEA:
                 * pava.get("Maximum concentration in positive electrode [mol.m-3]")
             )
             warnings.warn(
-                "Warning: 'Negative electrode thickness [m]' has been calculated from "
-                "'Theoretical n/p ratio' and 'Positive electrode thickness [m]'"
+                "Warning: 'Positive electrode thickness [m]' has been calculated from "
+                "'Theoretical n/p ratio' and 'Negative electrode thickness [m]'"
             )
         if (
             pava.get("Negative electrode thickness [m]") is not None
             and pava.get("Positive electrode thickness [m]") is not None
         ):
+            # calculate theoretical NPR based on negative and positive electrode thickness
             pava["Theoretical n/p ratio"] = (
                 pava.get("Negative electrode thickness [m]")
                 * pava.get("Negative electrode active material volume fraction")
@@ -303,14 +307,47 @@ class TEA:
                     * pava.get("Maximum concentration in positive electrode [mol.m-3]")
                 )
             )
-        self.parameter_values = {**self.parameter_values, **pava}
+        if (
+            pava.get("Initial concentration in negative electrode [mol.m-3]") is None
+            and pava.get("Initial concentration in positive electrode [mol.m-3]") is None
+        ):
+            # initialize concentrations based on initial loss of lithium inventory
+            pava["Initial concentration in negative electrode [mol.m-3]"] = 0
+            pava["Initial concentration in positive electrode [mol.m-3]"] = pava.get("Maximum concentration in positive electrode [mol.m-3]")
+            warnings.warn("Warning: 'Initial concentration in negative electrode [mol.m-3]' and 'Initial concentration in positive electrode [mol.m-3]' are set to 0 and maximum concentration in positive electrode, respectively.")
+        if (pava.get("Initial concentration in negative electrode [mol.m-3]") is None
+            and pava.get("Initial concentration in positive electrode [mol.m-3]") is not None
+        ):
+            raise ValueError("Error: 'Initial concentration in negative electrode [mol.m-3]' missing. Please, supply both or none.")
+        if (
+            pava.get("Initial concentration in negative electrode [mol.m-3]") is not None
+            and pava.get("Initial concentration in positive electrode [mol.m-3]") is None
+        ):
+            raise ValueError("Error: 'Initial concentration in positive electrode [mol.m-3]' missing. Please, supply both or none.")
+        if pava.get("Initial loss of lithium inventory") is None:
+            pava["Initial loss of lithium inventory"] = 0
+            warnings.warn("Warning: 'Initial loss of lithium inventory' is set to 0.")
+        if (
+            pava.get("Initial concentration in negative electrode [mol.m-3]") is not None
+            and pava.get("Initial concentration in positive electrode [mol.m-3]") is not None
+        ):
+                    # calculate initial lithium inventory from initial concentrations in both electrodes and volume fractions and thicknesses
+                    pava["Initial lithium inventory [mA.h.cm-2]"] = (pava.get("Negative electrode thickness [m]") * pava.get("Negative electrode active material volume fraction") * pava.get("Initial concentration in negative electrode [mol.m-3]") + pava.get("Positive electrode thickness [m]") * pava.get("Positive electrode active material volume fraction") * pava.get("Initial concentration in positive electrode [mol.m-3]")) * 96485 / 3.6 / 10000
+                    pava["Initial lithium inventory / positive electrode theoretical capacity"] = pava.get("Initial lithium inventory [mA.h.cm-2]") / (pava.get("Maximum concentration in positive electrode [mol.m-3]") * pava.get("Positive electrode thickness [m]") * pava.get("Positive electrode active material volume fraction") * 96485 / 3.6 / 10000)
+                    pava["Initial loss of lithium inventory [mA.h.cm-2]"] = pava.get("Initial lithium inventory [mA.h.cm-2]") * pava.get("Initial loss of lithium inventory")
+                    pava["Lithium inventory [mA.h.cm-2]"] = pava.get("Initial lithium inventory [mA.h.cm-2]") - float(pava.get("Initial loss of lithium inventory [mA.h.cm-2]"))
+                    pava["Initial concentration in negative electrode [mol.m-3]"] = pava.get("Initial concentration in negative electrode [mol.m-3]") * (1 - pava.get("Initial loss of lithium inventory"))
+                    pava["Initial concentration in positive electrode [mol.m-3]"] = pava.get("Initial concentration in positive electrode [mol.m-3]") * (1 - pava.get("Initial loss of lithium inventory"))
+                    pava["Initial stoichiometry"] = pava.get("Lithium inventory [mA.h.cm-2]") / ((pava.get("Negative electrode thickness [m]") * pava.get("Negative electrode active material volume fraction") * pava.get("Maximum concentration in negative electrode [mol.m-3]") + pava.get("Positive electrode thickness [m]") * pava.get("Positive electrode active material volume fraction") * pava.get("Maximum concentration in positive electrode [mol.m-3]")) * 96485 / 3.6 / 10000)
+        self.parameter_values.update(pava, check_already_exists=False)
+        self.calculate_stack_energy()
 
-    def print_stack_breakdown(self):
+    def print_masses_and_volumes(self):
         """
         A dataframe with components, volume-, mass loadings and densities on stack
         level.
         """
-        stack_bd = self.stack_breakdown
+        stack_bd = self.masses_and_volumes
 
         # Create a dataframe with columns for components, volume- and mass- loadings
         # and densities
@@ -347,45 +384,39 @@ class TEA:
         df.index.name = None
         return df
 
-    def print_stack_energy_densities(self):
+    def print_stack_energy(self):
         """
         A dataframe with capacities, energy densities, stoichiometry- and potential-
         windows, n/p ratios, (single-)stack thickness and stack density.
         """
-        stack_ed = self.stack_energy_densities
-        data = [
-            {
-                "Parameter": "Volumetric energy density",
-                "Unit": "Wh.L-1",
-                "Value": stack_ed.get("Volumetric stack energy density [Wh.L-1]"),
-            },
-            {
-                "Parameter": "Gravimetric energy density",
-                "Unit": "Wh.kg-1",
-                "Value": stack_ed.get("Gravimetric stack energy density [Wh.kg-1]"),
-            },
-            {
-                "Parameter": "Stack average OCP",
-                "Unit": "V",
-                "Value": stack_ed.get("Stack average OCP [V]"),
-            },
-            {
-                "Parameter": "Capacity",
-                "Unit": "mA.h.cm-2",
-                "Value": stack_ed.get("Capacity [mA.h.cm-2]"),
-            },
-            {
-                "Parameter": "(Single-) stack thickness",
-                "Unit": "um",
-                "Value": 10**6 * stack_ed.get("Stack thickness [m]"),
-            },
-            {
-                "Parameter": "Stack density",
-                "Unit": "kg.L-1",
-                "Value": 10**-3 * stack_ed.get("Stack density [kg.m-3]"),
-            },
+        stack_ed = self.stack_energy
+
+        parameters = [
+            "Volumetric stack energy [W.h.L-1]",
+            "Gravimetric stack energy [W.h.kg-1]",
+            "Areal stack energy [W.h.m-2]",
+            "Stack average OCP [V]",
+            "Capacity [mA.h.cm-2]",
+            "Stack thickness [um]",
+            "Stack density [kg.L-1]",
         ]
-        # Create the DataFrame from the list of dictionaries
+
+        names = []
+        units = []
+        values = []
+
+        for parameter in parameters:
+            name, unit = parameter.split("[")
+            names.append(name.strip())
+            units.append(unit.rstrip(']'))
+            values.append(stack_ed.get(parameter))
+
+        data = {
+            "Parameter": names,
+            "Unit": units,
+            "Value": values,
+            }
+        
         df = pd.DataFrame(data)
         return df
 
@@ -394,211 +425,173 @@ class TEA:
         A dataframe with capacities, energy densities, stoichiometry- and potential
         windows, n/p ratios, (single-)stack thickness and stack density.
         """
-        stack_ed = self.stack_energy_densities
-        data = [
-            # stack potentials
-            {"Parameter": "Stack potentials", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Stack average OCP",
-                "Unit": "V",
-                "Value": stack_ed.get("Stack average OCP [V]"),
-            },
-            {
-                "Parameter": "Maximal OCP",
-                "Unit": "V",
-                "Value": stack_ed.get("Maximal OCP [V]"),
-            },
-            {
-                "Parameter": "Minimal OCP",
-                "Unit": "V",
-                "Value": stack_ed.get("Minimal OCP [V]"),
-            },
-            # electrode potentials
-            {"Parameter": "Electrode potentials", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Negative electrode average OCP",
-                "Unit": "V",
-                "Value": stack_ed.get("Negative electrode average OCP [V]"),
-            },
-            {
-                "Parameter": "Positive electrode average OCP",
-                "Unit": "V",
-                "Value": stack_ed.get("Positive electrode average OCP [V]"),
-            },
-            # n/p ratio
-            {"Parameter": "n/p ratio's", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Practical n/p ratio",
-                "Unit": "-",
-                "Value": stack_ed.get("Practical n/p ratio"),
-            },
-            {
-                "Parameter": "Theoretical n/p ratio",
-                "Unit": "-",
-                "Value": self.parameter_values.get("Theoretical n/p ratio"),
-            },
-            # stack capacities
-            {"Parameter": "Stack capacities", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Volumetric stack capacity",
-                "Unit": "Ah.L-1",
-                "Value": stack_ed.get("Volumetric stack capacity [Ah.L-1]"),
-            },
-            {
-                "Parameter": "Gravimetric stack capacity",
-                "Unit": "Ah.kg-1",
-                "Value": stack_ed.get("Gravimetric stack capacity [Ah.kg-1]"),
-            },
-            {
-                "Parameter": "Capacity",
-                "Unit": "mA.h.cm-2",
-                "Value": stack_ed.get("Capacity [mA.h.cm-2]"),
-            },
-            # electrode capacities
-            {"Parameter": "Electrode capacities", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Negative electrode theoretical capacity",
-                "Unit": "mA.h.cm-2",
-                "Value": stack_ed.get(
-                    "Negative electrode theoretical capacity [mA.h.cm-2]"
-                ),
-            },
-            {
-                "Parameter": "Positive electrode theoretical capacity",
-                "Unit": "mA.h.cm-2",
-                "Value": stack_ed.get(
-                    "Positive electrode theoretical capacity [mA.h.cm-2]"
-                ),
-            },
-            {
-                "Parameter": "Negative electrode volumetric capacity",
-                "Unit": "mA.h.cm-3",
-                "Value": stack_ed.get(
-                    "Negative electrode volumetric capacity [mA.h.cm-3]"
-                ),
-            },
-            {
-                "Parameter": "Positive electrode volumetric capacity",
-                "Unit": "mA.h.cm-3",
-                "Value": stack_ed.get(
-                    "Positive electrode volumetric capacity [mA.h.cm-3]"
-                ),
-            },
-            {
-                "Parameter": "Negative electrode gravimetric capacity",
-                "Unit": "mA.h.g-1",
-                "Value": stack_ed.get(
-                    "Negative electrode gravimetric capacity [mA.h.g-1]"
-                ),
-            },
-            {
-                "Parameter": "Positive electrode gravimetric capacity",
-                "Unit": "mA.h.g-1",
-                "Value": stack_ed.get(
-                    "Positive electrode gravimetric capacity [mA.h.g-1]"
-                ),
-            },
-            # active material capacities
-            {"Parameter": "Active material capacities", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Negative electrode active material practical capacity",
-                "Unit": "mA.h.g-1",
-                "Value": stack_ed.get(
-                    "Negative electrode active material practical capacity [mA.h.g-1]"
-                ),
-            },
-            {
-                "Parameter": "Positive electrode active material practical capacity",
-                "Unit": "mA.h.g-1",
-                "Value": stack_ed.get(
-                    "Positive electrode active material practical capacity [mA.h.g-1]"
-                ),
-            },
-            {
-                "Parameter": "Negative electrode active material theoretical capacity",
-                "Unit": "mA.h.g-1",
-                "Value": self.parameter_values.get(
-                    "Negative electrode active material capacity [mA.h.g-1]"
-                ),
-            },
-            {
-                "Parameter": "Positive electrode active material theoretical capacity",
-                "Unit": "mA.h.g-1",
-                "Value": self.parameter_values.get(
-                    "Positive electrode active material capacity [mA.h.g-1]"
-                ),
-            },
-            # stoichiometries
-            {"Parameter": "Stoichiometries", "Unit": "", "Value": ""},
-            {
-                "Parameter": "Negative electrode stoichiometry at 0% SoC",
-                "Unit": "-",
-                "Value": stack_ed.get("Negative electrode stoichiometry at 0% SoC"),
-            },
-            {
-                "Parameter": "Negative electrode stoichiometry at 100% SoC",
-                "Unit": "-",
-                "Value": stack_ed.get("Negative electrode stoichiometry at 100% SoC"),
-            },
-            {
-                "Parameter": "Positive electrode stoichiometry at 100% SoC",
-                "Unit": "-",
-                "Value": stack_ed.get("Positive electrode stoichiometry at 100% SoC"),
-            },
-            {
-                "Parameter": "Positive electrode stoichiometry at 0% SoC",
-                "Unit": "-",
-                "Value": stack_ed.get("Positive electrode stoichiometry at 0% SoC"),
-            },
+        stack_ed = self.stack_energy
+
+        parameters = [
+            "Stack average OCP [V]",
+            "Minimal OCP [V]",
+            "Maximal OCP [V]",
+            "Negative electrode average OCP [V]",
+            "Positive electrode average OCP [V]",
+            "Practical n/p ratio",
+            "Theoretical n/p ratio",
+            "Volumetric stack capacity [A.h.L-1]",
+            "Gravimetric stack capacity [A.h.kg-1]",
+            "Capacity [mA.h.cm-2]",
+            "Lithium inventory [mA.h.cm-2]",
+            "Initial loss of lithium inventory [mA.h.cm-2]",
+            "Initial lithium inventory [mA.h.cm-2]",
+            "Initial lithium inventory / positive electrode theoretical capacity",
+            "Negative electrode theoretical capacity [mA.h.cm-2]",
+            "Positive electrode theoretical capacity [mA.h.cm-2]",
+            "Negative electrode volumetric capacity [A.h.L-1]",
+            "Positive electrode volumetric capacity [A.h.L-1]",
+            "Negative electrode gravimetric capacity [A.h.kg-1]",
+            "Positive electrode gravimetric capacity [A.h.kg-1]",
+            "Negative electrode active material practical capacity [A.h.kg-1]",
+            "Positive electrode active material practical capacity [A.h.kg-1]",
+            "Negative electrode active material capacity [A.h.kg-1]",
+            "Positive electrode active material capacity [A.h.kg-1]",
+            "Negative electrode stoichiometry at 0% SoC",
+            "Negative electrode stoichiometry at 100% SoC",
+            "Positive electrode stoichiometry at 100% SoC",
+            "Positive electrode stoichiometry at 0% SoC",
         ]
-        # Create the DataFrame from the list of dictionaries
+
+        names = []
+        units = []
+        values = []
+        for parameter in parameters:
+            if "[" in parameter:
+                name, unit = parameter.split("[")
+                names.append(name.strip())
+                units.append(unit.rstrip(']'))
+            else:
+                names.append(parameter.strip())
+                units.append("-")
+            values.append(stack_ed.get(parameter))
+
+        data = {
+            "Parameter": names,
+            "Unit": units,
+            "Value": values,
+            }
+        
         df = pd.DataFrame(data)
         return df
-
-    def calculate_stack_energy_densities(self):
+        
+    
+    def calculate_stack_energy(self):
         """
         Calculate ideal volumetric and gravimetric energy densities on stack level.
         """
         stack_ed = {}  # stack energy densities dict
-        pava = None
-        pava = self.parameter_values  # parameter values
+        pava = dict(self.parameter_values)  # parameter values
 
         # stoichiometries - calculation based on input stoichiometries or cell
         # potential limits
         if (
-            pava.get("Negative electrode stoichiometry at 0%") is not None
-            and pava.get("Negative electrode stoichiometry at 100%") is not None
-            and pava.get("Positive electrode stoichiometry at 100%") is not None
-            and pava.get("Positive electrode stoichiometry at 0%") is not None
+            pava.get("Negative electrode stoichiometry at 0% SoC") is not None
+            and pava.get("Negative electrode stoichiometry at 100% SoC") is not None
+            and pava.get("Positive electrode stoichiometry at 100% SoC") is not None
+            and pava.get("Positive electrode stoichiometry at 0% SoC") is not None
         ) or (
-            pava.get("Negative electrode stoichiometry at 0%") is None
-            and pava.get("Negative electrode stoichiometry at 100%") is None
-            and pava.get("Positive electrode stoichiometry at 100%") is not None
-            and pava.get("Positive electrode stoichiometry at 0%") is not None
+            pava.get("Negative electrode stoichiometry at 0% SoC") is None
+            and pava.get("Negative electrode stoichiometry at 100% SoC") is None
+            and pava.get("Positive electrode stoichiometry at 100% SoC") is not None
+            and pava.get("Positive electrode stoichiometry at 0% SoC") is not None
         ):
             y100 = pava.get("Positive electrode stoichiometry at 100% SoC")
             y0 = pava.get("Positive electrode stoichiometry at 0% SoC")
-            # x0, x100 = self.get_stoichiometries(pava, y0, y100)
-            # update cut-off voltages if voltage curve(s) are provided
+            # calculate lithium in positive electrode at SOC = 0
+            n_pe_0 = y0 * (pava.get("Maximum concentration in positive electrode [mol.m-3]")
+                           * pava.get("Positive electrode thickness [m]")
+                           * pava.get("Positive electrode active material volume fraction")
+                           * 96485 / 3.6 / 10000)
+            # calculate lithium in positive electrode at SOC = 1
+            n_pe_100 = y100 * (pava.get("Maximum concentration in positive electrode [mol.m-3]")
+                           * pava.get("Positive electrode thickness [m]")
+                           * pava.get("Positive electrode active material volume fraction")
+                           * 96485 / 3.6 / 10000)
+            if n_pe_0 > pava.get("Lithium inventory [mA.h.cm-2]"):
+                raise ValueError("Error: Stoichiometry calculation failed. Lithium inventory in positive electrode at 0% SoC > Lithium inventory [mA.h.cm-2]")
+            # calculate lithium in negative electrode at SOC = 0
+            x0 = ((pava.get("Lithium inventory [mA.h.cm-2]") - n_pe_0)
+                      / (pava.get("Maximum concentration in negative electrode [mol.m-3]")
+                         * pava.get("Negative electrode thickness [m]")
+                         * pava.get("Negative electrode active material volume fraction")
+                         * 96485 / 3.6 / 10000))
+            # calculate lithium in negative electrode at SOC = 1
+            x100 = ((pava.get("Lithium inventory [mA.h.cm-2]") - n_pe_100)
+                      / (pava.get("Maximum concentration in negative electrode [mol.m-3]")
+                         * pava.get("Negative electrode thickness [m]")
+                         * pava.get("Negative electrode active material volume fraction")
+                         * 96485 / 3.6 / 10000))
+            if x0 < 0 or x100 < 0 or x0 > 1 or x100 > 1:
+                raise ValueError("Error: Stoichiometry calculation for negative electrode failed.")
+            if pava.get("Negative electrode OCP [V]") is not None and pava.get("Positive electrode OCP [V]") is not None:
+                pava["Lower voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y0).evaluate() - pava.get("Negative electrode OCP [V]")(x0).evaluate()
+                pava["Upper voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y100).evaluate() - pava.get("Negative electrode OCP [V]")(x100).evaluate()
+            if pava.get("Negative electrode OCP [V]") is None and pava.get("Positive electrode OCP [V]") is not None:
+                pava["Lower voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y0).evaluate() - pava.get("Negative electrode average OCP [V]")
+                pava["Upper voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y100).evaluate() - pava.get("Negative electrode average OCP [V]")
+            if pava.get("Negative electrode OCP [V]") is not None and pava.get("Positive electrode OCP [V]") is None:
+                pava["Lower voltage cut-off [V]"] = pava.get("Positive electrode average OCP [V]") - pava.get("Negative electrode OCP [V]")(x0).evaluate()
+                pava["Upper voltage cut-off [V]"] = pava.get("Positive electrode average OCP [V]") - pava.get("Negative electrode OCP [V]")(x100).evaluate()
+            
         elif (
-            pava.get("Negative electrode stoichiometry at 0%") is not None
-            and pava.get("Negative electrode stoichiometry at 100%") is not None
-            and pava.get("Positive electrode stoichiometry at 100%") is None
-            and pava.get("Positive electrode stoichiometry at 0%") is None
+            pava.get("Negative electrode stoichiometry at 0% SoC") is not None
+            and pava.get("Negative electrode stoichiometry at 100% SoC") is not None
+            and pava.get("Positive electrode stoichiometry at 100% SoC") is None
+            and pava.get("Positive electrode stoichiometry at 0% SoC") is None
         ):
             x100 = pava.get("Negative electrode stoichiometry at 100% SoC")
             x0 = pava.get("Negative electrode stoichiometry at 0% SoC")
-            # y0, y100 = self.get_stoichiometries(pava, x0, x100)
-            # update cut-off voltages if voltage curve(s) are provided
+            # calculate lithium in negative electrode at SOC = 0
+            n_ne_0 = x0 * (pava.get("Maximum concentration in negative electrode [mol.m-3]")
+                           * pava.get("Negative electrode thickness [m]")
+                           * pava.get("Negative electrode active material volume fraction")
+                           * 96485 / 3.6 / 10000)
+            # calculate lithium in negative electrode at SOC = 1
+            n_ne_100 = x100 * (pava.get("Maximum concentration in negative electrode [mol.m-3]")
+                           * pava.get("Negative electrode thickness [m]")
+                           * pava.get("Negative electrode active material volume fraction")
+                           * 96485 / 3.6 / 10000)
+            if n_ne_100 > pava.get("Lithium inventory [mA.h.cm-2]"):
+                raise ValueError("Error: Stoichiometry calculation failed. Lithium inventory in negative electrode at 100% SoC > Lithium inventory [mA.h.cm-2]")
+            # calculate lithium in positive electrode at SOC = 0
+            y0 = ((pava.get("Lithium inventory [mA.h.cm-2]") - n_ne_0)
+                      / (pava.get("Maximum concentration in positive electrode [mol.m-3]")
+                         * pava.get("Positive electrode thickness [m]")
+                         * pava.get("Positive electrode active material volume fraction")
+                         * 96485 / 3.6 / 10000))
+            # calculate lithium in positive electrode at SOC = 1
+            y100 = ((pava.get("Lithium inventory [mA.h.cm-2]") - n_ne_100)
+                      / (pava.get("Maximum concentration in positive electrode [mol.m-3]")
+                         * pava.get("Positive electrode thickness [m]")
+                         * pava.get("Positive electrode active material volume fraction")
+                         * 96485 / 3.6 / 10000))
+            if y0 < 0 or y100 < 0 or y0 > 1 or y100 > 1:
+                raise ValueError("Error: Stoichiometry calculation for positive electrode failed.")
+            if pava.get("Negative electrode OCP [V]") is not None and pava.get("Positive electrode OCP [V]") is not None:
+                pava["Lower voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y0).evaluate() - pava.get("Negative electrode OCP [V]")(x0).evaluate()
+                pava["Upper voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y100).evaluate() - pava.get("Negative electrode OCP [V]")(x100).evaluate()
+            if pava.get("Negative electrode OCP [V]") is None and pava.get("Positive electrode OCP [V]") is not None:
+                pava["Lower voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y0).evaluate() - pava.get("Negative electrode average OCP [V]")
+                pava["Upper voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y100).evaluate() - pava.get("Negative electrode average OCP [V]")
+            if pava.get("Negative electrode OCP [V]") is not None and pava.get("Positive electrode OCP [V]") is None:
+                pava["Lower voltage cut-off [V]"] = pava.get("Positive electrode average OCP [V]") - pava.get("Negative electrode OCP [V]")(x0).evaluate()
+                pava["Upper voltage cut-off [V]"] = pava.get("Positive electrode OCP average [V]") - pava.get("Negative electrode OCP [V]")(x100).evaluate()
         elif (
             pava.get("Negative electrode OCP [V]") is not None
             and pava.get("Positive electrode OCP [V]") is not None
             and pava.get("Lower voltage cut-off [V]") is not None
             and pava.get("Upper voltage cut-off [V]") is not None
         ):
+            # stoichiometries at 0 and 100% SOC based on cell potential limits
             x0, x100, y100, y0 = pybamm.lithium_ion.get_min_max_stoichiometries(
                 pybamm.ParameterValues(pava)
-            )  # stoichiometries at 0 and 100% SOC based on cell potential limits
+            )
         else:
             raise ValueError("Error: Stoichiometry calculation failed.")
         stack_ed["Negative electrode stoichiometry at 0% SoC"] = x0
@@ -606,11 +599,17 @@ class TEA:
         stack_ed["Positive electrode stoichiometry at 100% SoC"] = y100
         stack_ed["Positive electrode stoichiometry at 0% SoC"] = y0
 
+        # update initial concentrations in electrodes to SoC = 1
+        pava["Initial concentration in negative electrode [mol.m-3]"] = x100 * pava.get("Maximum concentration in negative electrode [mol.m-3]")
+        pava["Initial concentration in positive electrode [mol.m-3]"] = y100 * pava.get("Maximum concentration in positive electrode [mol.m-3]")
+        self.parameter_values.update(pava, check_already_exists=False)
+
         # capacities - per electrode area, volume and mass and per active material mass
         electrodes = ["Negative electrode", "Positive electrode"]
         electrodes_ = ["negative electrode", "positive electrode"]
         for electrode, electrode_ in zip(electrodes, electrodes_):
-            stack_ed[f"{electrode} volumetric capacity [mA.h.cm-3]"] = (
+            # calculate volumetric electrode capacity based on maximum concentration, active material volume fraction and stoichiometries
+            stack_ed[f"{electrode} volumetric capacity [A.h.L-1]"] = (
                 pava.get(f"Maximum concentration in {electrode_} [mol.m-3]")
                 * 96485
                 / 3.6
@@ -629,24 +628,28 @@ class TEA:
                     )
                 )
             )
-            stack_ed[f"{electrode} gravimetric capacity [mA.h.g-1]"] = (
-                stack_ed.get(f"{electrode} volumetric capacity [mA.h.cm-3]")
+            # calculate gravimetric electrode capacity based on volumetric electrode capacity and electrode density
+            stack_ed[f"{electrode} gravimetric capacity [A.h.kg-1]"] = (
+                stack_ed.get(f"{electrode} volumetric capacity [A.h.L-1]")
                 / pava.get(f"{electrode} density [kg.m-3]")
                 * 1000
             )  # cm3.L-1
-            stack_ed[f"{electrode} active material practical capacity [mA.h.g-1]"] = (
-                stack_ed.get(f"{electrode} volumetric capacity [mA.h.cm-3]")
+            # calculate active material practical capacity based on volumetric electrode capacity, active material volume fraction and active material density
+            stack_ed[f"{electrode} active material practical capacity [A.h.kg-1]"] = (
+                stack_ed.get(f"{electrode} volumetric capacity [A.h.L-1]")
                 / pava.get(f"{electrode} active material volume fraction")
                 / pava.get(f"{electrode} active material density [kg.m-3]")
                 * 1000
             )  # cm3.L-1
+            # calculate areal electrode capacity based on volumetric electrode capacity and electrode thickness
             stack_ed[f"{electrode} capacity [mA.h.cm-2]"] = pava.get(
                 f"{electrode} capacity [mA.h.cm-2]"
             ) or (
-                stack_ed.get(f"{electrode} volumetric capacity [mA.h.cm-3]")
+                stack_ed.get(f"{electrode} volumetric capacity [A.h.L-1]")
                 * pava.get(f"{electrode} thickness [m]")
                 * 100
             )  # cm.m-1
+            # calculate theoretical electrode capacity based on maximum concentration, active material volume fraction and electrode thickness
             stack_ed[f"{electrode} theoretical capacity [mA.h.cm-2]"] = (
                 pava.get(f"Maximum concentration in {electrode_} [mol.m-3]")
                 * pava.get(f"{electrode} active material volume fraction")
@@ -662,6 +665,7 @@ class TEA:
         )
 
         # practical n/p ratio
+        # calculate practical n/p ratio based on 1 for the maximum negative electrode stoichiometry, stoichiometries at SoC 1&0 and maximum concentration, active material volume fraction and electrode thicknesses
         stack_ed["Practical n/p ratio"] = (
             (1 - x0)
             / (y0 - y100)
@@ -720,6 +724,11 @@ class TEA:
         stack_ed["Minimal OCP [V]"] = pe_0 - ne_0
         stack_ed["Maximal OCP [V]"] = pe_100 - ne_100
 
+        # calculate areal stack energy density based on stack average OCP, areal capacity
+        stack_ed["Areal stack energy [mW.h.cm-2]"] = stack_ed.get("Stack average OCP [V]") * stack_ed.get("Capacity [mA.h.cm-2]")
+        # convert from [mW.h.cm-2] to [W.h.m-2]
+        stack_ed["Areal stack energy [W.h.m-2]"] = stack_ed.get("Areal stack energy [mW.h.cm-2]") * 10
+
         # thicknesses
         compartments = [
             "Negative current collector",
@@ -741,19 +750,21 @@ class TEA:
                     f"{compartment} thickness [m]"
                 )
 
-        # volumetric stack capacity in [Ah.L-1] and volumetric stack energy density in
-        # [Wh.L-1]
-        stack_ed["Volumetric stack capacity [Ah.L-1]"] = (
+        # volumetric stack capacity in [Ah.L-1] and volumetric stack energy density in [Wh.L-1]
+        # calculate volumetric stack capacity based on stack thickness and areal capacity
+        stack_ed["Volumetric stack capacity [A.h.L-1]"] = (
             stack_ed.get("Capacity [mA.h.cm-2]")
             / stack_ed.get("Stack thickness [m]")
             / 100
         )
-        stack_ed["Volumetric stack energy density [Wh.L-1]"] = (
+        # calculate volumetric stack energy density based on volumetric stack capacity and stack average OCP
+        stack_ed["Volumetric stack energy [W.h.L-1]"] = (
             stack_ed.get("Stack average OCP [V]")
-            * stack_ed["Volumetric stack capacity [Ah.L-1]"]
+            * stack_ed["Volumetric stack capacity [A.h.L-1]"]
         )
 
         # stack density
+        # calculate stack density as the sum of the ratio's of compartment to stack thickness times the compartment density
         stack_ed["Stack density [kg.m-3]"] = 0
         for compartment in compartments:
             if pava.get(f"{compartment} density [kg.m-3]") is None:
@@ -776,22 +787,34 @@ class TEA:
             "Stack density [kg.m-3]"
         ) / stack_ed.get("Stack thickness [m]")
 
-        # gravimetric stack capacity in [Ah.L-1] and gravimetric stack energy density
-        # in [Wh.L-1]
-        stack_ed["Gravimetric stack capacity [Ah.kg-1]"] = (
-            stack_ed.get("Volumetric stack capacity [Ah.L-1]")
+        # gravimetric stack capacity in [A.h.L-1] and gravimetric stack energy density in [W.h.L-1]
+        # calculate gravimetric stack capacity based on volumetric stack capacity and stack density
+        stack_ed["Gravimetric stack capacity [A.h.kg-1]"] = (
+            stack_ed.get("Volumetric stack capacity [A.h.L-1]")
             / stack_ed.get("Stack density [kg.m-3]")
             * 1000
         )
-        stack_ed["Gravimetric stack energy density [Wh.kg-1]"] = (
-            stack_ed.get("Volumetric stack energy density [Wh.L-1]")
+        # calculate gravimetric stack energy density based on volumetric stack energy density and stack density
+        stack_ed["Gravimetric stack energy [W.h.kg-1]"] = (
+            stack_ed.get("Volumetric stack energy [W.h.L-1]")
             / stack_ed.get("Stack density [kg.m-3]")
             * 1000
         )
+
+        # Add parameter for the dataframes
+        stack_ed["Stack thickness [um]"] = 10**6 * stack_ed.get("Stack thickness [m]")
+        stack_ed["Stack density [kg.L-1]"] = 10**-3 * stack_ed.get("Stack density [kg.m-3]")
+        stack_ed["Initial lithium inventory [mA.h.cm-2]"] = pava.get("Initial lithium inventory [mA.h.cm-2]")
+        stack_ed["Initial lithium inventory / positive electrode theoretical capacity"] = pava.get("Initial lithium inventory / positive electrode theoretical capacity")
+        stack_ed["Lithium inventory [mA.h.cm-2]"] = pava.get("Lithium inventory [mA.h.cm-2]")
+        stack_ed["Initial loss of lithium inventory [mA.h.cm-2]"] = pava.get("Initial loss of lithium inventory [mA.h.cm-2]")
+        stack_ed["Negative electrode active material capacity [A.h.kg-1]"] = pava.get("Negative electrode active material capacity [A.h.kg-1]")
+        stack_ed["Positive electrode active material capacity [A.h.kg-1]"] = pava.get("Positive electrode active material capacity [A.h.kg-1]")
+        stack_ed["Theoretical n/p ratio"] = pava.get("Theoretical n/p ratio")
 
         return stack_ed
 
-    def calculate_stack_breakdown(self):
+    def calculate_masses_and_volumes(self):
         """Breakdown volume- and mass loadings on stack level."""
         stack_bd = {}  # stack energy densities dict
         pava = self.parameter_values  # parameter values
@@ -821,6 +844,7 @@ class TEA:
         stack_bd["Separator dry volume fraction"] = 1
 
         # volume loadings
+        # calculate volume loadings based on volume fractions and thicknesses
         for components in list(stack_bd.keys()):
             if "Negative" in components:
                 stack_bd[
@@ -874,15 +898,15 @@ class TEA:
 
         for electrode in ["Negative electrode", "Positive electrode"]:
             stack_bd[f"{electrode} electrolyte density [mg.uL-1]"] = (
-                pava.get("Electrolyte density [kg.m-3]", 0) / 1000
+                pava.get("Electrolyte density [kg.m-3]") / 1000
             )
             stack_bd[f"{electrode} density [mg.uL-1]"] = (
-                pava.get(f"{electrode} density [kg.m-3]", 0) / 1000
+                pava.get(f"{electrode} density [kg.m-3]") / 1000
             )
             stack_bd[f"{electrode} dry density [mg.uL-1]"] = (
-                pava.get(f"{electrode} density [kg.m-3]", 0)
+                pava.get(f"{electrode} density [kg.m-3]")
                 - pava.get(f"{electrode} porosity")
-                * pava.get("Electrolyte density [kg.m-3]", 0)
+                * pava.get("Electrolyte density [kg.m-3]")
             ) / 1000
             if stack_bd.get(f"{electrode} inactive material volume fraction") == 0:
                 stack_bd[f"{electrode} inactive material density [mg.uL-1]"] = 0
@@ -894,25 +918,26 @@ class TEA:
                     f"{electrode} inactive material density is set to 0"
                 )
             else:
+                # calculate inactive material density as the remainder from electrode without active material and electrolyte
                 stack_bd[f"{electrode} inactive material density [mg.uL-1]"] = (
                     (
-                        pava.get(f"{electrode} density [kg.m-3]", 0)
+                        pava.get(f"{electrode} density [kg.m-3]")
                         - pava.get(f"{electrode} porosity")
-                        * pava.get("Electrolyte density [kg.m-3]", 0)
-                        - pava.get(f"{electrode} active material volume fraction", 0)
-                        * pava.get(f"{electrode} active material density [kg.m-3]", 0)
+                        * pava.get("Electrolyte density [kg.m-3]")
+                        - pava.get(f"{electrode} active material volume fraction")
+                        * pava.get(f"{electrode} active material density [kg.m-3]")
                     )
                     / stack_bd.get(f"{electrode} inactive material volume fraction")
                     / 1000
                 )
                 stack_bd[f"{electrode} active material density [mg.uL-1]"] = (
-                    pava.get(f"{electrode} active material density [kg.m-3]", 0) / 1000
+                    pava.get(f"{electrode} active material density [kg.m-3]") / 1000
                 )
         stack_bd["Separator electrolyte density [mg.uL-1]"] = (
-            pava.get("Electrolyte density [kg.m-3]", 0) / 1000
+            pava.get("Electrolyte density [kg.m-3]") / 1000
         )
         stack_bd["Separator density [mg.uL-1]"] = (
-            pava.get("Separator density [kg.m-3]", 0) / 1000
+            pava.get("Separator density [kg.m-3]") / 1000
         )
         if pava.get("Separator porosity") == 1:
             stack_bd["Separator material density [mg.uL-1]"] = 0
@@ -921,25 +946,27 @@ class TEA:
                 "set to 0"
             )
         else:
+            # calculate separator material density as the remainder from separator without electrolyte
             stack_bd["Separator material density [mg.uL-1]"] = (
                 (
-                    pava.get("Separator density [kg.m-3]", 0)
+                    pava.get("Separator density [kg.m-3]")
                     - pava.get("Separator porosity")
-                    * pava.get("Electrolyte density [kg.m-3]", 0)
+                    * pava.get("Electrolyte density [kg.m-3]")
                 )
                 / (1 - pava.get("Separator porosity"))
                 / 1000
             )
+            # calculate separator dry density based on separator and electrolyte density
             stack_bd["Separator dry density [mg.uL-1]"] = (
-                pava.get("Separator density [kg.m-3]", 0)
+                pava.get("Separator density [kg.m-3]")
                 - pava.get("Separator porosity")
-                * pava.get("Electrolyte density [kg.m-3]", 0)
+                * pava.get("Electrolyte density [kg.m-3]")
             ) / 1000
         stack_bd["Negative current collector density [mg.uL-1]"] = (
-            pava.get("Negative current collector density [kg.m-3]", 0) / 1000
+            pava.get("Negative current collector density [kg.m-3]") / 1000
         )
         stack_bd["Positive current collector density [mg.uL-1]"] = (
-            pava.get("Positive current collector density [kg.m-3]", 0) / 1000
+            pava.get("Positive current collector density [kg.m-3]") / 1000
         )
 
         # mass loadings
@@ -957,8 +984,8 @@ class TEA:
 
         return stack_bd
 
-    def plot_stack_breakdown(self, testing=False):
-        stack_bd = self.stack_breakdown
+    def plot_masses_and_volumes(self, testing=False):
+        stack_bd = self.masses_and_volumes
 
         # Data for colored rectangle heights, widths, labels, and colors
         components = [

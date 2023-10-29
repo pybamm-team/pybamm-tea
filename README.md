@@ -1,6 +1,15 @@
 
 ![PyBaMM-TEA-logo](https://github.com/pybamm-team/pybamm-tea/blob/main/docs/_static/pybamm_tea_logo.PNG)
 
+#
+
+<div align="center">
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pybamm-team/PyBaMM/blob/main/)
+
+
+</div>
+
 
 # PyBaMM-TEA
 
