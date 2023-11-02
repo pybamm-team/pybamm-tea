@@ -13,7 +13,7 @@
 
 # PyBaMM-TEA
 
-This repository contains the work of the "Google Summer of Code" project on a techno-economic analysis library for battery cells, which _can_ be combined with PyBaMM's functionality - as for creating a Ragone plot. The library can be used to estimate how mass- and volume loadings, voltage cut-off's and more influence cell metrics such as the volumetric energy at the stack level. The project further aims at comprehensive modelling of form factors and cell costs.
+This repository contains the work of the "Google Summer of Code" project on a techno-economic analysis library for battery cells, which _can_ be combined with PyBaMM's functionality - as for creating a Ragone plot. The library can be used to estimate how mass- and volume loadings, voltage cut-off's and more influence cell metrics such as the volumetric energy at the stack level. The project further aims to provide functionality for modelling of form factors and cell costs.
 
 ## Installation
 We recommend installing within a [virtual environment](https://docs.python.org/3/tutorial/venv.html) in order to not alter any python distribution files on your machine.
@@ -75,31 +75,30 @@ As an alternative, you can set up [Windows Subsystem for Linux](https://docs.mic
 
 ## Example usage
 
-Create a script - e.g. to plot a mass- and volume-breakdown of an electrode stack - as below or as in the example notebook.
+Create a script to plot the mass- and volume loadings of an electrode stack.
 
 ```python3
-from pybamm_tea import TEA
+import pybamm_tea
 import pybamm
 
 # Load a base parameter set from PyBaMM
-param_nco = pybamm.ParameterValues("Ecker2015")
+base = pybamm.ParameterValues("Ecker2015")
 
 # Provide additional input data for the TEA model
-nco_input_data = {
+input = {
     "Electrolyte density [kg.m-3]": 1276,  # EC:EMC
     "Negative electrode active material density [kg.m-3]": 2266,  # Graphite
     "Positive electrode active material density [kg.m-3]": 4750,  # NCO
 }
 
 # Create a TEA object, passing in the parameter set and input data
-tea_nco = TEA(param_nco, nco_input_data)
+tea_class = pybamm_tea.TEA(base, input)
 
-# Plot a mass- and volume-loading breakdown for an electrode stack
-tea_nco.plot_stack_breakdown()
+# Plot the mass- and volume loadings of an electrode stack
+tea_class.plot_masses_and_volumes()
 
-# Print a dataframe with values of the mass- and volume-loading breakdown for an
-# electrode stack
-print(tea_nco.stack_breakdown_dataframe)
+# Print a dataframe with values of the mass- and volume loadings plot
+print(tea_class.masses_and_volumes_dataframe)
 ```
 
 ## Documentation
