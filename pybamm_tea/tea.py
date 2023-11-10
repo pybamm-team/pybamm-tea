@@ -113,6 +113,24 @@ class TEA:
             ) * pava.get(
                 "Separator material density [kg.m-3]"
             )
+        if pava.get("Separator material density [kg.m-3]") is not None and pava.get("Separator dry density [kg.m-3]") is not None:
+        # calculate separator porosity based on dry density and material density
+            pava["Separator porosity"] = 1 - pava.get(
+                "Separator dry density [kg.m-3]"
+            ) / pava.get(
+                "Separator material density [kg.m-3]"
+            )
+            warnings.warn(
+                    f"Warning: 'Separator porosity [kg.m-3]' has been calulated from; 'Separator dry density [kg.m-3]' and 'Separator material density [kg.m-3]'"
+                )
+        # calculate separator density based on material density, porosity and electrolyte density
+            pava["Separator density [kg.m-3]"] = pava.get(
+                "Separator porosity"
+            ) * pava.get("Electrolyte density [kg.m-3]") + (
+                1 - pava.get("Separator porosity")
+            ) * pava.get(
+                "Separator material density [kg.m-3]"
+            )
         electrodes = ["Negative electrode", "Positive electrode"]
         for electrode in electrodes:
             if (
@@ -136,7 +154,7 @@ class TEA:
                     f"{electrode} dry density [kg.m-3]"
                 )
                 warnings.warn(
-                    f"Warning: '{electrode} active material density [kg.m-3]' and '{electrode} dry density [kg.m-3]' have been calulated from;'Electrolyte density [kg.m-3]', '{electrode} porosity' and '{electrode} density [kg.m-3]'"
+                    f"Warning: '{electrode} active material density [kg.m-3]' and '{electrode} dry density [kg.m-3]' have been calulated from; 'Electrolyte density [kg.m-3]', '{electrode} porosity' and '{electrode} density [kg.m-3]'"
                 )
             if (
                 pava.get(f"{electrode} binder dry mass fraction") is not None
@@ -162,6 +180,57 @@ class TEA:
                     + pava.get(f"{electrode} conductive additive dry mass fraction")
                     / pava.get(f"{electrode} conductive additive density [kg.m-3]")
                 )
+            #########
+            if (
+                pava.get(f"{electrode} active material dry mass fraction") is not None
+                and pava.get(f"{electrode} active material density [kg.m-3]")
+                is not None
+                and pava.get(f"{electrode} inactive material density [kg.m-3]")
+                is not None
+                and pava.get(f"{electrode} dry density [kg.m-3]")
+                is not None
+            ):
+                # calculate porosity based on active material dry mass fraction, active- and inactive material density and dry electrode density
+                pava[f"{electrode} porosity"] = (1 - pava.get(f"{electrode} dry density [kg.m-3]")
+                                                 * (pava.get(f"{electrode} active material dry mass fraction")
+                                                    / pava.get(f"{electrode} active material density [kg.m-3]")
+                                                    + (1 - pava.get(f"{electrode} active material dry mass fraction"))
+                                                    / pava.get(f"{electrode} inactive material density [kg.m-3]")))
+                warnings.warn(
+                    f"Warning: '{electrode} porosity' has been calulated from; '{electrode} dry density [kg.m-3]', {electrode} active material dry mass fraction', '{electrode} active material density [kg.m-3]' and '{electrode} inactive material density [kg.m-3]'"
+                )
+            elif (
+                pava.get(f"{electrode} active material dry mass fraction") is not None
+                and pava.get(f"{electrode} active material density [kg.m-3]")
+                is not None
+                and pava.get(f"{electrode} inactive material density [kg.m-3]")
+                is None
+                and pava.get(f"{electrode} dry density [kg.m-3]")
+                is not None
+            ):
+                # calculate inactive material density based on active material dry mass fraction, porosity and active material density and dry electrode density
+                pava[f"{electrode} inactive material density [kg.m-3]"] = ((1 - pava.get(f"{electrode} active material dry mass fraction"))
+                                                                           / ((1 - pava.get(f"{electrode} porosity"))
+                                                                              / pava.get(f"{electrode} dry density [kg.m-3]")
+                                                                              - pava.get(f"{electrode} active material dry mass fraction")
+                                                                              / pava.get(f"{electrode} active material density [kg.m-3]")))
+            elif (
+                pava.get(f"{electrode} active material dry mass fraction") is not None
+                and pava.get(f"{electrode} active material density [kg.m-3]")
+                is None
+                and pava.get(f"{electrode} inactive material density [kg.m-3]")
+                is not None
+                and pava.get(f"{electrode} dry density [kg.m-3]")
+                is not None
+            ):
+                # calculate inactive material density based on active material dry mass fraction, porosity and active material density and dry electrode density
+                pava[f"{electrode} active material density [kg.m-3]"] = (pava.get(f"{electrode} active material dry mass fraction")
+                                                                           / ((1 - pava.get(f"{electrode} porosity"))
+                                                                              / pava.get(f"{electrode} dry density [kg.m-3]")
+                                                                              - (1 - pava.get(f"{electrode} active material dry mass fraction"))
+                                                                              / pava.get(f"{electrode} inactive material density [kg.m-3]")))
+               
+            ###############
             if (
                 pava.get(f"{electrode} active material dry mass fraction") is not None
                 and pava.get(f"{electrode} active material density [kg.m-3]")
