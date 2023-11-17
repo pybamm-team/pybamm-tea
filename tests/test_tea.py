@@ -2,7 +2,8 @@ import unittest
 import pybamm
 from pybamm_tea import TEA
 import matplotlib.pyplot as plt
-import pandas as pd
+import pandas as pd 
+import numpy as np
 
 
 class TestTEA(unittest.TestCase):
@@ -17,33 +18,98 @@ class TestTEA(unittest.TestCase):
         param_nco.update(nco_input_data, check_already_exists=False)
         tea_nco = TEA(param_nco, nco_input_data)
         return tea_nco
-
-    # test stack energy densities dict
-    def test_stack_energy_densities(self):
-        tea_nco = self.ExampleModel()
-        self.assertIsInstance(tea_nco.stack_energy_densities, dict)
-        self.assertEqual(len(list(tea_nco.stack_energy_densities.keys())), 34)
-        self.assertEqual(
-            tea_nco.stack_energy_densities.get(
-                "Gravimetric stack energy density [W.h.kg-1]"
-            ).round(),
-            200.0,
-        )
-
-    # test stack breakdown dict
+    
+    # test stack breakdown
     def test_stack_breakdown(self):
-        tea_nco = self.ExampleModel()
-        self.assertIsInstance(tea_nco.stack_breakdown, dict)
-        self.assertEqual(len(list(tea_nco.stack_breakdown.keys())), 62)
 
-    # test stack breakdown dataframe
-    def test_stack_breakdown_dataframe(self):
+        # load example model
         tea_nco = self.ExampleModel()
+
+        # check if pandas dataframe and dict
+        self.assertIsInstance(tea_nco.stack_breakdown, dict)
         self.assertIsInstance(tea_nco.stack_breakdown_dataframe, pd.DataFrame)
-        self.assertEqual(
-            list(tea_nco.stack_breakdown_dataframe.columns),
-            ["Volume loading [uL.cm-2]", "Mass loading [mg.cm-2]", "Density [mg.uL-1]"],
-        ), "stack_breakdown_dataframe columns are correct"
+
+        # import stack breakdown dataframe from csv
+        ref_stack_breakdown_dataframe = pd.read_csv("tests/stack_breakdown.csv", index_col=0)
+
+        # replace NaN values with empty string
+        ref_stack_breakdown_dataframe.replace(np.nan, "", inplace=True)
+        tea_nco.stack_breakdown_dataframe.replace(np.nan, "", inplace=True)
+
+        # compare each cell of the dataframe
+        for i in ref_stack_breakdown_dataframe.columns:
+            for j in ref_stack_breakdown_dataframe.index:
+                if isinstance(tea_nco.stack_breakdown_dataframe[i][j], str):
+                    self.assertEqual(
+                        tea_nco.stack_breakdown_dataframe[i][j],
+                        ref_stack_breakdown_dataframe[i][j],
+                    )
+                else:
+                    self.assertAlmostEqual(
+                        round(tea_nco.stack_breakdown_dataframe[i][j], 7),
+                        round(ref_stack_breakdown_dataframe[i][j], 7),
+                        )
+
+    # test stack energy densities
+    def test_stack_energy_densities(self):
+
+        # load example model
+        tea_nco = self.ExampleModel()
+
+        # check if pandas dataframe and dict
+        self.assertIsInstance(tea_nco.stack_energy_densities, dict)
+        self.assertIsInstance(tea_nco.stack_energy_densities_dataframe, pd.DataFrame)
+
+        # import stack energy densities dataframe from csv
+        ref_stack_energy_densities_dataframe = pd.read_csv("tests/stack_energy_densities.csv", index_col=0)
+
+        # replace NaN values with empty string
+        ref_stack_energy_densities_dataframe.replace(np.nan, "", inplace=True)
+        tea_nco.stack_energy_densities_dataframe.replace(np.nan, "", inplace=True)
+
+        # compare each cell of the dataframe
+        for i in ref_stack_energy_densities_dataframe.columns:
+            for j in ref_stack_energy_densities_dataframe.index:
+                if isinstance(tea_nco.stack_energy_densities_dataframe[i][j], str):
+                    self.assertEqual(
+                        tea_nco.stack_energy_densities_dataframe[i][j],
+                        ref_stack_energy_densities_dataframe[i][j],
+                    )
+                else:
+                    self.assertAlmostEqual(
+                        round(tea_nco.stack_energy_densities_dataframe[i][j], 7),
+                        round(ref_stack_energy_densities_dataframe[i][j], 7),
+                        )
+
+    def test_capacities_and_potentials(self):
+
+        # load example model
+        tea_nco = self.ExampleModel()
+
+        # check if pandas dataframe and dict
+        self.assertIsInstance(tea_nco.capacities_and_potentials_dataframe, pd.DataFrame)
+
+        # import stack breakdown dataframe from csv
+        ref_capacities_and_potentials = pd.read_csv("tests/capacities_and_potentials.csv", index_col=0)
+
+        # replace NaN values with empty string
+        ref_capacities_and_potentials.replace(np.nan, "", inplace=True)
+        tea_nco.capacities_and_potentials_dataframe.replace(np.nan, "", inplace=True)
+
+        # compare each cell of the dataframe
+        for i in ref_capacities_and_potentials.columns:
+            for j in ref_capacities_and_potentials.index:
+                if isinstance(tea_nco.capacities_and_potentials_dataframe[i][j], str):
+                    self.assertEqual(
+                        tea_nco.capacities_and_potentials_dataframe[i][j],
+                        ref_capacities_and_potentials[i][j],
+                    )
+                else:
+                    self.assertAlmostEqual(
+                        round(tea_nco.capacities_and_potentials_dataframe[i][j], 7),
+                        round(ref_capacities_and_potentials[i][j], 7),
+                        )
+
 
     # test stack breakdown plot
     def test_plot_stack_breakdown(self):

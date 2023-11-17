@@ -106,26 +106,27 @@ class TEA:
         fractions.
         """
         pava = self.parameter_values
+        # rho_sep=rho_elyte*por_sep+rho_mat*(1-por_sep)
+        # calculate separator density from porosity, electrolyte density and seperaor
         if pava.get("Separator dry density [kg.m-3]") is not None:
             pava["Separator density [kg.m-3]"] = pava.get(
                 "Separator porosity"
-            ) * pava.get("Electrolyte density [kg.m-3]", 0) + pava.get(
-                "Separator dry density [kg.m-3]", 0
-            )
+            ) * pava.get("Electrolyte density [kg.m-3]") + pava.get(
+                "Separator dry density [kg.m-3]")
         if pava.get("Separator material density [kg.m-3]") is not None:
             pava["Separator density [kg.m-3]"] = pava.get(
                 "Separator porosity"
-            ) * pava.get("Electrolyte density [kg.m-3]", 0) + (
+            ) * pava.get("Electrolyte density [kg.m-3]") + (
                 1 - pava.get("Separator porosity")
             ) * pava.get(
-                "Separator material density [kg.m-3]", 0
+                "Separator material density [kg.m-3]"
             )
         electrodes = ["Negative electrode", "Positive electrode"]
         for electrode in electrodes:
             if (
                 (
-                    pava.get(f"{electrode} active material volume fraction", 0)
-                    + pava.get(f"{electrode} porosity", 0)
+                    pava.get(f"{electrode} active material volume fraction")
+                    + pava.get(f"{electrode} porosity")
                     == 1
                 )
                 and pava.get(f"{electrode} binder dry mass fraction") is None
@@ -136,7 +137,7 @@ class TEA:
                 pava[f"{electrode} dry density [kg.m-3]"] = pava.get(
                     f"{electrode} density [kg.m-3]"
                 ) - pava.get(f"{electrode} porosity") * pava.get(
-                    "Electrolyte density [kg.m-3]", 0
+                    "Electrolyte density [kg.m-3]"
                 )
                 pava[f"{electrode} active material density [kg.m-3]"] = pava.get(
                     f"{electrode} dry density [kg.m-3]"
@@ -286,8 +287,8 @@ class TEA:
                 * pava.get("Maximum concentration in positive electrode [mol.m-3]")
             )
             warnings.warn(
-                "Warning: 'Negative electrode thickness [m]' has been calculated from "
-                "'Theoretical n/p ratio' and 'Positive electrode thickness [m]'"
+                "Warning: 'Positive electrode thickness [m]' has been calculated from "
+                "'Theoretical n/p ratio' and 'Negative electrode thickness [m]'"
             )
         if (
             pava.get("Negative electrode thickness [m]") is not None

@@ -1,0 +1,25 @@
+,Parameter,Unit,Value
+0,Stack average OCP,V,3.7566884932653757
+1,Minimal OCP,V,2.5002934432759223
+2,Maximal OCP,V,4.199991638671754
+3,Negative electrode average OCP,V,0.16911648682881586
+4,Positive electrode average OCP,V,3.9258049800941914
+5,Practical n/p ratio,,1.1794155043339016
+6,Theoretical n/p ratio,,0.8212130653900627
+7,Volumetric stack capacity,A.h.L-1,122.57415815387185
+8,Gravimetric stack capacity,A.h.kg-1,53.181271493272135
+9,Capacity,mA.h.cm-2,1.991830070000417
+10,Negative electrode theoretical capacity,mA.h.cm-2,2.3575725906940668
+11,Positive electrode theoretical capacity,mA.h.cm-2,2.8708415514239998
+12,Negative electrode volumetric capacity,A.h.L-1,269.16622567573205
+13,Positive electrode volumetric capacity,A.h.L-1,368.85742037044764
+14,Negative electrode gravimetric capacity,A.h.kg-1,173.0972512384129
+15,Positive electrode gravimetric capacity,A.h.kg-1,127.41188959255531
+16,Negative electrode active material practical capacity,A.h.kg-1,318.9682739774891
+17,Positive electrode active material practical capacity,A.h.kg-1,190.1797456950419
+18,Negative electrode active material capacity,A.h.kg-1,377.53765813474547
+19,Positive electrode active material capacity,A.h.kg-1,274.1076783625731
+20,Negative electrode stoichiometry at 0% SoC,,0.0035533684817003956
+21,Negative electrode stoichiometry at 100% SoC,,0.8484181577410738
+22,Positive electrode stoichiometry at 100% SoC,,0.23526436281608434
+23,Positive electrode stoichiometry at 0% SoC,,0.9290783662439037
