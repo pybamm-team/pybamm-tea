@@ -13,7 +13,7 @@
 
 # PyBaMM-TEA
 
-This repository contains the work of the "Google Summer of Code" project on a techno-economic analysis library for battery cells, which _can_ be combined with PyBaMM's functionality - as for creating a Ragone plot. The library can be used to estimate how mass- and volume loadings, voltage cut-off's and more influence cell metrics such as the volumetric energy at the stack level. The project further aims to provide functionality for modelling of form factors and cell costs.
+This repository contains the work of the "Google Summer of Code" project on a techno-economic analysis library for battery cells, which _can_ be combined with PyBaMM's functionality - as for creating a Ragone plot. By now, the library can be used to estimate how mass- and volume loadings, voltage cut-off's and more influence cell metrics such as the volumetric energy at the stack level. The project further aims to provide functionality for modelling of form factors and costs.
 
 ## Installation
 We recommend installing within a [virtual environment](https://docs.python.org/3/tutorial/venv.html) in order to not alter any python distribution files on your machine.

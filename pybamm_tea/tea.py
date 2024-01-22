@@ -121,7 +121,7 @@ class TEA:
                 "Separator material density [kg.m-3]"
             )
             warnings.warn(
-                    f"Warning: 'Separator porosity [kg.m-3]' has been calulated from; 'Separator dry density [kg.m-3]' and 'Separator material density [kg.m-3]'"
+                    f"'Separator porosity [kg.m-3]' has been calulated from; 'Separator dry density [kg.m-3]' and 'Separator material density [kg.m-3]'"
                 )
         # calculate separator density based on material density, porosity and electrolyte density
             pava["Separator density [kg.m-3]"] = pava.get(
@@ -144,18 +144,49 @@ class TEA:
                 is None
                 and pava.get(f"{electrode} active material dry mass fraction") is None
             ):
-                # calculate electrode active material and dry density based on electrode density, porosity and electrolyte density
-                pava[f"{electrode} dry density [kg.m-3]"] = pava.get(
-                    f"{electrode} density [kg.m-3]"
-                ) - pava.get(f"{electrode} porosity") * pava.get(
-                    "Electrolyte density [kg.m-3]"
-                )
-                pava[f"{electrode} active material density [kg.m-3]"] = pava.get(
-                    f"{electrode} dry density [kg.m-3]"
-                )
-                warnings.warn(
-                    f"Warning: '{electrode} active material density [kg.m-3]' and '{electrode} dry density [kg.m-3]' have been calulated from; 'Electrolyte density [kg.m-3]', '{electrode} porosity' and '{electrode} density [kg.m-3]'"
-                )
+                if pava.get(f"{electrode} active material density [kg.m-3]") is not None:
+                    # calculate electrode dry density based on active material density and porosity
+                    pava[f"{electrode} dry density [kg.m-3]"] = pava.get(
+                        f"{electrode} active material density [kg.m-3]"
+                    ) * (1 - pava.get(f"{electrode} porosity"))
+                    # calculate electrode density based on dry density, porosity and electrolyte density
+                    pava[f"{electrode} density [kg.m-3]"] = pava.get(
+                        f"{electrode} dry density [kg.m-3]"
+                    ) + pava.get(f"{electrode} porosity") * pava.get(
+                        "Electrolyte density [kg.m-3]"
+                    )
+                    warnings.warn(
+                        f"'{electrode} density [kg.m-3]' and '{electrode} dry density [kg.m-3]' have been calulated from; 'Electrolyte density [kg.m-3]', '{electrode} porosity' and '{electrode} active material density [kg.m-3]'"
+                    )
+                elif pava.get(f"{electrode} dry density [kg.m-3]") is not None:
+                    # calculate electrode density based on dry density, porosity and electrolyte density
+                    pava[f"{electrode} density [kg.m-3]"] = pava.get(
+                        f"{electrode} dry density [kg.m-3]"
+                    ) + pava.get(f"{electrode} porosity") * pava.get(
+                        "Electrolyte density [kg.m-3]"
+                    )
+                    # calculate electrode active material density based on electrode density, porosity and electrolyte density
+                    pava[f"{electrode} active material density [kg.m-3]"] = pava.get(
+                        f"{electrode} density [kg.m-3]"
+                    ) - pava.get(f"{electrode} porosity") * pava.get(
+                        "Electrolyte density [kg.m-3]"
+                    )
+                    warnings.warn(
+                        f"'{electrode} active material density [kg.m-3]' and '{electrode} dry density [kg.m-3]' have been calulated from; 'Electrolyte density [kg.m-3]', '{electrode} porosity' and '{electrode} density [kg.m-3]'"
+                    )
+                else:
+                    # calculate electrode active material and dry density based on electrode density, porosity and electrolyte density
+                    pava[f"{electrode} dry density [kg.m-3]"] = pava.get(
+                        f"{electrode} density [kg.m-3]"
+                    ) - pava.get(f"{electrode} porosity") * pava.get(
+                        "Electrolyte density [kg.m-3]"
+                    )
+                    pava[f"{electrode} active material density [kg.m-3]"] = pava.get(
+                        f"{electrode} dry density [kg.m-3]"
+                    ) / (1 - pava.get(f"{electrode} porosity"))
+                    warnings.warn(
+                        f"'{electrode} active material density [kg.m-3]' and '{electrode} dry density [kg.m-3]' have been calculated from; 'Electrolyte density [kg.m-3]', '{electrode} porosity' and '{electrode} density [kg.m-3]'"
+                    )
             if (
                 pava.get(f"{electrode} binder dry mass fraction") is not None
                 and pava.get(f"{electrode} conductive additive dry mass fraction")
@@ -164,12 +195,6 @@ class TEA:
                 and pava.get(f"{electrode} conductive additive density [kg.m-3]")
                 is not None
             ):
-                # calculate active material dry mass fraction based on binder and conductive additive dry mass fractions
-                pava[f"{electrode} active material dry mass fraction"] = (
-                    1
-                    - pava.get(f"{electrode} binder dry mass fraction")
-                    - pava.get(f"{electrode} conductive additive dry mass fraction")
-                )
                 # calculate inactive material density based on binder and conductive additive dry mass fractions and densities
                 pava[f"{electrode} inactive material density [kg.m-3]"] = (
                     pava.get(f"{electrode} binder dry mass fraction")
@@ -180,6 +205,13 @@ class TEA:
                     + pava.get(f"{electrode} conductive additive dry mass fraction")
                     / pava.get(f"{electrode} conductive additive density [kg.m-3]")
                 )
+                if pava.get(f"{electrode} active material dry mass fraction") is None:
+                    # calculate active material dry mass fraction based on binder and conductive additive dry mass fractions
+                    pava[f"{electrode} active material dry mass fraction"] = (
+                        1
+                        - pava.get(f"{electrode} binder dry mass fraction")
+                        - pava.get(f"{electrode} conductive additive dry mass fraction")
+                        )                
             #########
             if (
                 pava.get(f"{electrode} active material dry mass fraction") is not None
@@ -197,7 +229,7 @@ class TEA:
                                                     + (1 - pava.get(f"{electrode} active material dry mass fraction"))
                                                     / pava.get(f"{electrode} inactive material density [kg.m-3]")))
                 warnings.warn(
-                    f"Warning: '{electrode} porosity' has been calulated from; '{electrode} dry density [kg.m-3]', {electrode} active material dry mass fraction', '{electrode} active material density [kg.m-3]' and '{electrode} inactive material density [kg.m-3]'"
+                    f"'{electrode} porosity' has been calulated from; '{electrode} dry density [kg.m-3]', {electrode} active material dry mass fraction', '{electrode} active material density [kg.m-3]' and '{electrode} inactive material density [kg.m-3]'"
                 )
             elif (
                 pava.get(f"{electrode} active material dry mass fraction") is not None
@@ -339,7 +371,7 @@ class TEA:
                 )
             )
             warnings.warn(
-                "Warning: 'Negative electrode thickness [m]' has been calculated from "
+                "'Negative electrode thickness [m]' has been calculated from "
                 "'Theoretical n/p ratio' and 'Positive electrode thickness [m]'"
             )
         if (
@@ -358,7 +390,7 @@ class TEA:
                 * pava.get("Maximum concentration in positive electrode [mol.m-3]")
             )
             warnings.warn(
-                "Warning: 'Positive electrode thickness [m]' has been calculated from "
+                "'Positive electrode thickness [m]' has been calculated from "
                 "'Theoretical n/p ratio' and 'Negative electrode thickness [m]'"
             )
         if (
@@ -387,7 +419,7 @@ class TEA:
         if (pava.get("Initial concentration in negative electrode [mol.m-3]") is None
             and pava.get("Initial concentration in positive electrode [mol.m-3]") is not None
         ):
-            raise ValueError("Error: 'Initial concentration in negative electrode [mol.m-3]' missing. Please, supply both or none.")
+            raise ValueError("'Initial concentration in negative electrode [mol.m-3]' missing. Please, supply both or none.")
         if (
             pava.get("Initial concentration in negative electrode [mol.m-3]") is not None
             and pava.get("Initial concentration in positive electrode [mol.m-3]") is None
@@ -395,7 +427,7 @@ class TEA:
             raise ValueError("Error: 'Initial concentration in positive electrode [mol.m-3]' missing. Please, supply both or none.")
         if pava.get("Initial loss of lithium inventory") is None:
             pava["Initial loss of lithium inventory"] = 0
-            warnings.warn("Warning: 'Initial loss of lithium inventory' is set to 0.")
+            warnings.warn("'Initial loss of lithium inventory' is set to 0.")
         if (
             pava.get("Initial concentration in negative electrode [mol.m-3]") is not None
             and pava.get("Initial concentration in positive electrode [mol.m-3]") is not None
@@ -583,7 +615,7 @@ class TEA:
                            * pava.get("Positive electrode active material volume fraction")
                            * 96485 / 3.6 / 10000)
             if n_pe_0 > pava.get("Lithium inventory [mA.h.cm-2]"):
-                raise ValueError("Error: Stoichiometry calculation failed. Lithium inventory in positive electrode at 0% SoC > Lithium inventory [mA.h.cm-2]")
+                raise ValueError(f"Stoichiometry calculation failed. Lithium inventory in positive electrode at 0% SoC > Lithium inventory [mA.h.cm-2] ({n_pe_0}>{pava.get('Lithium inventory [mA.h.cm-2]')})")
             # calculate lithium in negative electrode at SOC = 0
             x0 = ((pava.get("Lithium inventory [mA.h.cm-2]") - n_pe_0)
                       / (pava.get("Maximum concentration in negative electrode [mol.m-3]")
@@ -596,8 +628,8 @@ class TEA:
                          * pava.get("Negative electrode thickness [m]")
                          * pava.get("Negative electrode active material volume fraction")
                          * 96485 / 3.6 / 10000))
-            if x0 < 0 or x100 < 0 or x0 > 1 or x100 > 1:
-                raise ValueError("Error: Stoichiometry calculation for negative electrode failed.")
+            if x0 < -1e-5 or x100 < -1e-5 or x0 > 1 + 1e-5 or x100 > 1 + 1e-5:
+                raise ValueError(f"Stoichiometry calculation for negative electrode failed. (x0={x0}, x100={x100})")
             if pava.get("Negative electrode OCP [V]") is not None and pava.get("Positive electrode OCP [V]") is not None:
                 pava["Lower voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y0).evaluate() - pava.get("Negative electrode OCP [V]")(x0).evaluate()
                 pava["Upper voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y100).evaluate() - pava.get("Negative electrode OCP [V]")(x100).evaluate()
@@ -627,7 +659,7 @@ class TEA:
                            * pava.get("Negative electrode active material volume fraction")
                            * 96485 / 3.6 / 10000)
             if n_ne_100 > pava.get("Lithium inventory [mA.h.cm-2]"):
-                raise ValueError("Error: Stoichiometry calculation failed. Lithium inventory in negative electrode at 100% SoC > Lithium inventory [mA.h.cm-2]")
+                raise ValueError("Stoichiometry calculation failed. Lithium inventory in negative electrode at 100% SoC > Lithium inventory [mA.h.cm-2]")
             # calculate lithium in positive electrode at SOC = 0
             y0 = ((pava.get("Lithium inventory [mA.h.cm-2]") - n_ne_0)
                       / (pava.get("Maximum concentration in positive electrode [mol.m-3]")
@@ -640,8 +672,8 @@ class TEA:
                          * pava.get("Positive electrode thickness [m]")
                          * pava.get("Positive electrode active material volume fraction")
                          * 96485 / 3.6 / 10000))
-            if y0 < 0 or y100 < 0 or y0 > 1 or y100 > 1:
-                raise ValueError("Error: Stoichiometry calculation for positive electrode failed.")
+            if y0 < -1e-5 or y100 < -1e-5 or y0 > 1 + 1e-5 or y100 > 1 + 1e-5:
+                raise ValueError("Error: Stoichiometry calculation for positive electrode failed. (y0={y0}, y100={y100})")
             if pava.get("Negative electrode OCP [V]") is not None and pava.get("Positive electrode OCP [V]") is not None:
                 pava["Lower voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y0).evaluate() - pava.get("Negative electrode OCP [V]")(x0).evaluate()
                 pava["Upper voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y100).evaluate() - pava.get("Negative electrode OCP [V]")(x100).evaluate()
@@ -662,7 +694,7 @@ class TEA:
                 pybamm.ParameterValues(pava)
             )
         else:
-            raise ValueError("Error: Stoichiometry calculation failed.")
+            raise ValueError("Stoichiometry calculation failed.")
         stack_ed["Negative electrode stoichiometry at 0% SoC"] = x0
         stack_ed["Negative electrode stoichiometry at 100% SoC"] = x100
         stack_ed["Positive electrode stoichiometry at 100% SoC"] = y100
@@ -767,7 +799,7 @@ class TEA:
             ne_0 = ne_ocv(x0).evaluate()
             ne_100 = ne_ocv(x100).evaluate()
         else:
-            raise ValueError("Error: Negative electrode OCP calculation failed.")
+            raise ValueError("Negative electrode OCP calculation failed.")
         if pava.get("Positive electrode average OCP [V]") is not None:
             stack_ed["Positive electrode average OCP [V]"] = pava.get(
                 "Positive electrode average OCP [V]"
@@ -783,7 +815,7 @@ class TEA:
             pe_100 = pe_ocv(y100).evaluate()
             pe_0 = pe_ocv(y0).evaluate()
         else:
-            raise ValueError("Error: Positive electrode OCP calculation failed.")
+            raise ValueError("Positive electrode OCP calculation failed.")
         if pava.get("Stack average OCP [V]") is not None:
             stack_ed["Stack average OCP [V]"] = pava.get("Stack average OCP [V]")
         else:
@@ -809,7 +841,7 @@ class TEA:
         stack_ed["Stack thickness [m]"] = 0
         for compartment in compartments:
             if pava.get(f"{compartment} thickness [m]") is None:
-                print(f"Warning: Missing '{compartment} thickness [m]'")
+                warnings.warn(f"Missing '{compartment} thickness [m]'")
             elif "current collector" in compartment:
                 stack_ed["Stack thickness [m]"] += (
                     pava.get(f"{compartment} thickness [m]") / 2
@@ -837,7 +869,7 @@ class TEA:
         stack_ed["Stack density [kg.m-3]"] = 0
         for compartment in compartments:
             if pava.get(f"{compartment} density [kg.m-3]") is None:
-                print(f"Warning: Missing '{compartment} density [kg.m-3]'")
+                warnings.warn(f"Missing '{compartment} density [kg.m-3]'")
             else:
                 stack_ed[f"{compartment} density [kg.m-3]"] = pava.get(
                     f"{compartment} density [kg.m-3]"
@@ -963,7 +995,7 @@ class TEA:
             "Positive current collector",
         ]:
             if pava.get(f"{component} density [kg.m-3]") is None:
-                warnings.warn(f"Warning: Missing '{component} density [kg.m-3]'")
+                warnings.warn(f"Missing '{component} density [kg.m-3]'")
 
         for electrode in ["Negative electrode", "Positive electrode"]:
             stack_bd[f"{electrode} electrolyte density [mg.uL-1]"] = (
@@ -983,7 +1015,7 @@ class TEA:
                     f"{electrode} dry density [mg.uL-1]"
                 ]
                 warnings.warn(
-                    f"Warning: {electrode} inactive material volume fraction is 0, "
+                    f"{electrode} inactive material volume fraction is 0, "
                     f"{electrode} inactive material density is set to 0"
                 )
             else:
@@ -1011,7 +1043,7 @@ class TEA:
         if pava.get("Separator porosity") == 1:
             stack_bd["Separator material density [mg.uL-1]"] = 0
             warnings.warn(
-                "Warning: Separator porosity is 1, separator material density is "
+                "Separator porosity is 1, separator material density is "
                 "set to 0"
             )
         else:
@@ -1053,7 +1085,7 @@ class TEA:
 
         return stack_bd
 
-    def plot_masses_and_volumes(self, testing=False):
+    def plot_masses_and_volumes(self, testing=False, axes=None):
         stack_bd = self.masses_and_volumes
 
         # Data for colored rectangle heights, widths, labels, and colors
@@ -1121,9 +1153,12 @@ class TEA:
                 stack_bd.get(f"{component} volume loading [uL.cm-2]")
             )
 
-        # Set up the figure and axis objects
-        fig = plt.figure(figsize=(12, 4), facecolor="white")
-        ax = fig.add_axes([0.1, 0.2, 0.6, 0.6])
+        # Create the figure and axes objects
+        if axes is None:
+            fig = plt.figure(figsize=(12, 4), facecolor="white")
+            ax = fig.add_axes([0.1, 0.2, 0.6, 0.6])
+        else:
+            ax = axes.inset_axes([0.1, 0.2, 0.6, 0.6])
 
         # Initialize the x position
         x_pos = -widths[0]
@@ -1185,4 +1220,7 @@ class TEA:
             plt.show()
 
         # Return the figure and axis objects
-        return fig
+        if axes is None:
+            return fig
+        else:
+            return axes
