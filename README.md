@@ -15,6 +15,36 @@
 
 This repository contains the work of the "Google Summer of Code" project on a techno-economic analysis library for battery cells, which _can_ be combined with PyBaMM's functionality - as for creating a Ragone plot. By now, the library can be used to estimate how mass- and volume loadings, voltage cut-off's and more influence cell metrics such as the volumetric energy at the stack level. The project further aims to provide functionality for modelling of form factors and costs.
 
+## Example usage
+
+After setting up a TEA class from an input- and/or PyBaMM parameter-set, dataframes with cell metrics and plots of mass- and volume loadings can be created. Check out the [example notebooks](https://colab.research.google.com/github/pybamm-team/PyBaMM/blob/main/) to see more functionality and brief explanations.
+
+```python3
+import pybamm
+import pybamm_tea
+
+# create an input dictionary
+input["Electrolyte density [kg.m-3]"] = 1276
+
+# create a base parameter-set
+base = pybamm.ParameterValues("Chen2020")
+
+# create a TEA class
+tea_class = pybamm_tea.TEA(base, input)
+
+# display the stack energy
+display(tea_class.stack_energy_dataframe)
+
+# display the capacities and potentials
+display(tea_class.capacities_and_potentials_dataframe)
+
+# display the mass and volume loadings as a dataframe
+display(tea_class.masses_and_volumes_dataframe)
+
+# plot the mass and volume loadings
+tea_class.plot_masses_and_volumes()
+```
+
 ## Installation
 We recommend installing within a [virtual environment](https://docs.python.org/3/tutorial/venv.html) in order to not alter any python distribution files on your machine.
 
@@ -72,34 +102,6 @@ pip install .
 To install the project in editable mode use `pip install -e .`
 
 As an alternative, you can set up [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about). This allows you to run a full Linux distribution within Windows.
-
-## Example usage
-
-Create a script to plot the mass- and volume loadings of an electrode stack.
-
-```python3
-import pybamm_tea
-import pybamm
-
-# Load a base parameter set from PyBaMM
-base = pybamm.ParameterValues("Ecker2015")
-
-# Provide additional input data for the TEA model
-input = {
-    "Electrolyte density [kg.m-3]": 1276,  # EC:EMC
-    "Negative electrode active material density [kg.m-3]": 2266,  # Graphite
-    "Positive electrode active material density [kg.m-3]": 4750,  # NCO
-}
-
-# Create a TEA object, passing in the parameter set and input data
-tea_class = pybamm_tea.TEA(base, input)
-
-# Plot the mass- and volume loadings of an electrode stack
-tea_class.plot_masses_and_volumes()
-
-# Print a dataframe with values of the mass- and volume loadings plot
-print(tea_class.masses_and_volumes_dataframe)
-```
 
 ## Documentation
 API documentation for the `pybamm_tea` package can be built locally using [Sphinx](https://www.sphinx-doc.org/en/master/). To build the documentation first [clone the repository](https://github.com/git-guides/git-clone), then run the following command:
