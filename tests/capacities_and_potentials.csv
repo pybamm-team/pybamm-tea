@@ -1,0 +1,16 @@
+,Parameter,Unit,Value
+0,Stack average OCP,V,3.7570519718582225
+1,Negative electrode average OCP,V,0.16922088377650885
+2,Positive electrode average OCP,V,3.9262728556347315
+3,Negative electrode active material practical capacity,mA.h.g-1,376.0133662736333
+4,Positive electrode active material practical capacity,mA.h.g-1,189.90759683565386
+5,Practical n/p ratio,-,1.180531878774385
+6,Capacity,mA.h.cm-2,1.988979743959312
+7,Total loss of lithium inventory,mA.h.cm-2,0.0019272001989131251
+8,Total loss of lithium inventory,%,0.07202833163150794
+9,First cycle coulombic efficiency,-,28.00902780237807
+10,Positive electrode initial stoichiometry,-,0.9319964388672213
+11,Negative electrode stoichiometry at 0% SoC,-,0.0035392260846511723
+12,Negative electrode stoichiometry at 100% SoC,-,0.8476170454399942
+13,Positive electrode stoichiometry at 0% SoC,-,0.9280843757031845
+14,Positive electrode stoichiometry at 100% SoC,-,0.2352632261093539

@@ -14,19 +14,21 @@ class TestTEA(unittest.TestCase):
             "Electrolyte density [kg.m-3]": 1276,
             "Negative electrode active material density [kg.m-3]": 2266,  # Graphite
             "Positive electrode active material density [kg.m-3]": 4750,  # NCO
-            "Initial loss of lithium inventory": 0.02,
+            "Loss of lithium inventory [%]": 0.05,
+            "Loss of negative electrode active material [%]": 0.05,
+            "Negative electrode stoichiometry at LAM": 0.5,
         }
         base = pybamm.ParameterValues("Ecker2015")
         tea_class = pybamm_tea.TEA(base, input)
         # import dataframes
-        self.ref_masses_and_volumes_dataframe = pd.read_csv("tests/masses_and_volumes_dataframe.csv", index_col=0)
-        self.ref_stack_energy_dataframe = pd.read_csv("tests/stack_energy_dataframe.csv", index_col=0)
-        self.ref_capacities_and_potentials = pd.read_csv("tests/capacities_and_potentials_dataframe.csv", index_col=0)
+        self.ref_masses_and_volumes_dataframe = pd.read_csv("tests/masses_and_volumes.csv", index_col=0)
+        self.ref_stack_energy_dataframe = pd.read_csv("tests/stack_energy.csv", index_col=0)
+        self.ref_capacities_and_potentials = pd.read_csv("tests/capacities_and_potentials.csv", index_col=0)
 
         return tea_class
     
-    # test stack breakdown
-    def test_stack_breakdown(self):
+    # test masses and volumes
+    def test_masses_and_volumes(self):
 
         # load example model
         tea_class = self.ExampleModel()
@@ -81,6 +83,7 @@ class TestTEA(unittest.TestCase):
                         round(self.ref_stack_energy_dataframe[i][j], 7),
                         )
 
+    # test capacities and potentials
     def test_capacities_and_potentials(self):
 
         # load example model
@@ -108,10 +111,25 @@ class TestTEA(unittest.TestCase):
                         )
 
 
-    # test stack breakdown plot
+    # test masses and volumes plot
     def test_plot_masses_and_volumes(self):
         tea_class = self.ExampleModel()
-        self.assertIsInstance(tea_class.plot_masses_and_volumes(testing=True), plt.Figure)
+        self.assertIsInstance(tea_class.plot_masses_and_volumes(show_plot=False), plt.Figure)
+    
+    # test lithiation plot
+    def test_lithiation_plot(self):
+        tea_class = self.ExampleModel()
+        self.assertIsInstance(tea_class.lithiation_plot(show_plot=False), plt.Figure)    
+    
+    # test differential lithiation plot
+    def test_differential_lithiation_plot(self):
+        tea_class = self.ExampleModel()
+        self.assertIsInstance(tea_class.differential_lithiation_plot(show_plot=False), plt.Figure)
+    
+    # test Ragone plot
+    def test_ragone_plot(self):
+        tea_class = self.ExampleModel()
+        self.assertIsInstance(pybamm_tea.plot_ragone([tea_class], C_rates = [1,2], plot_capacities_and_potentials=True, show_plot=False), plt.Figure)
 
 
 if __name__ == "__main__":
