@@ -11,6 +11,7 @@ dependencies = [
     "pybamm",
     "matplotlib",
     "pandas",
+    "numpy"
 ]
 
 [project.optional-dependencies]
