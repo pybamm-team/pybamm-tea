@@ -718,14 +718,27 @@ class TEA:
                 return input_0, input_100, output_100, output_0
             
         def update_potential_limits(pava, x0, x100, y100, y0):
+            # save min max OCVs
             try:
-                pava["Lower voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y0).evaluate() - pava.get("Negative electrode OCP [V]")(x0).evaluate()
-            except (AttributeError, TypeError):
-                pava["Lower voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y0) - pava.get("Negative electrode OCP [V]")(x0)
+                ne_0 = pava.get("Negative electrode OCP [V]")(x0).evaluate()
+                ne_100 = pava.get("Negative electrode OCP [V]")(x100).evaluate()
+            except AttributeError:
+                ne_0 = pava.get("Negative electrode OCP [V]")(x0)
+                ne_100 = pava.get("Negative electrode OCP [V]")(x100)
+            except TypeError:
+                ne_0 = pava.get("Negative electrode OCP [V]")([x0]).evaluate()[0,0]
+                ne_100 = pava.get("Negative electrode OCP [V]")([x100]).evaluate()[0,0]
             try:
-                pava["Upper voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y100).evaluate() - pava.get("Negative electrode OCP [V]")(x100).evaluate()
-            except (AttributeError, TypeError):
-                pava["Upper voltage cut-off [V]"] = pava.get("Positive electrode OCP [V]")(y100) - pava.get("Negative electrode OCP [V]")(x100)
+                pe_0 = pava.get("Positive electrode OCP [V]")(y0).evaluate()
+                pe_100 = pava.get("Positive electrode OCP [V]")(y100).evaluate()
+            except AttributeError:
+                pe_0 = pava.get("Positive electrode OCP [V]")(y0)
+                pe_100 = pava.get("Positive electrode OCP [V]")(y100)
+            except TypeError:
+                pe_0 = pava.get("Positive electrode OCP [V]")([y0]).evaluate()[0,0]
+                pe_100 = pava.get("Positive electrode OCP [V]")([y100]).evaluate()[0,0]
+            pava["Lower voltage cut-off [V]"] = pe_0 - ne_0
+            pava["Upper voltage cut-off [V]"] = pe_100 - ne_100
             
         # calculate stoichiometries
         def calculate_stoichiometries(pava):
@@ -791,23 +804,23 @@ class TEA:
         
         # save min max OCVs
         try:
-            stack_ed["Negative electrode OCV at 0% SoC [V]"] = pava.get("Negative electrode OCP [V]")(x0).evaluate()
-            stack_ed["Negative electrode OCV at 100% SoC [V]"] = pava.get("Negative electrode OCP [V]")(x100).evaluate()
+            stack_ed["Negative electrode OCP at 0% SoC [V]"] = pava.get("Negative electrode OCP [V]")(x0).evaluate()
+            stack_ed["Negative electrode OCP at 100% SoC [V]"] = pava.get("Negative electrode OCP [V]")(x100).evaluate()
         except AttributeError:
-            stack_ed["Negative electrode OCV at 0% SoC [V]"] = pava.get("Negative electrode OCP [V]")(x0)
-            stack_ed["Negative electrode OCV at 100% SoC [V]"] = pava.get("Negative electrode OCP [V]")(x100)
+            stack_ed["Negative electrode OCP at 0% SoC [V]"] = pava.get("Negative electrode OCP [V]")(x0)
+            stack_ed["Negative electrode OCP at 100% SoC [V]"] = pava.get("Negative electrode OCP [V]")(x100)
         except TypeError:
-            stack_ed["Negative electrode OCV at 0% SoC [V]"] = pava.get("Negative electrode OCP [V]")([x0]).evaluate()[0,0]
-            stack_ed["Negative electrode OCV at 100% SoC [V]"] = pava.get("Negative electrode OCP [V]")([x100]).evaluate()[0,0]
+            stack_ed["Negative electrode OCP at 0% SoC [V]"] = pava.get("Negative electrode OCP [V]")([x0]).evaluate()[0,0]
+            stack_ed["Negative electrode OCP at 100% SoC [V]"] = pava.get("Negative electrode OCP [V]")([x100]).evaluate()[0,0]
         try:
-            stack_ed["Positive electrode OCV at 0% SoC [V]"] = pava.get("Positive electrode OCP [V]")(x0).evaluate()
-            stack_ed["Positive electrode OCV at 100% SoC [V]"] = pava.get("Positive electrode OCP [V]")(x100).evaluate()
+            stack_ed["Positive electrode OCP at 0% SoC [V]"] = pava.get("Positive electrode OCP [V]")(y0).evaluate()
+            stack_ed["Positive electrode OCP at 100% SoC [V]"] = pava.get("Positive electrode OCP [V]")(y100).evaluate()
         except AttributeError:
-            stack_ed["Positive electrode OCV at 0% SoC [V]"] = pava.get("Positive electrode OCP [V]")(x0)
-            stack_ed["Positive electrode OCV at 100% SoC [V]"] = pava.get("Positive electrode OCP [V]")(x100)
+            stack_ed["Positive electrode OCP at 0% SoC [V]"] = pava.get("Positive electrode OCP [V]")(y0)
+            stack_ed["Positive electrode OCP at 100% SoC [V]"] = pava.get("Positive electrode OCP [V]")(y100)
         except TypeError:
-            stack_ed["Positive electrode OCV at 0% SoC [V]"] = pava.get("Positive electrode OCP [V]")([x0]).evaluate()[0,0]
-            stack_ed["Positive electrode OCV at 100% SoC [V]"] = pava.get("Positive electrode OCP [V]")([x100]).evaluate()[0,0]            
+            stack_ed["Positive electrode OCP at 0% SoC [V]"] = pava.get("Positive electrode OCP [V]")([y0]).evaluate()[0,0]
+            stack_ed["Positive electrode OCP at 100% SoC [V]"] = pava.get("Positive electrode OCP [V]")([y100]).evaluate()[0,0]            
 
         # initialize SoC = 1
         pava["Initial concentration in negative electrode [mol.m-3]"] = x100 * pava.get("Maximum concentration in negative electrode [mol.m-3]")
@@ -1280,7 +1293,10 @@ class TEA:
             fig = plt.figure(figsize=(12, 4), facecolor="white")
             ax = fig.add_axes([0.1, 0.2, 0.6, 0.6])
         else:
-            ax = axes.inset_axes([0.1, 0.2, 0.6, 0.6])
+            ax = axes.inset_axes([0, 0, 0.55, 0.8])
+            axes.set_xticks([])
+            axes.set_yticks([])
+            axes.set_frame_on(False)
 
         # Initialize the x position
         x_pos = -widths[0]
@@ -1335,7 +1351,7 @@ class TEA:
             patches.Patch(color=color, label=label)
             for color, label in zip(colors[1:-1], legend_labels)
         ]
-        ax.legend(handles=legend_handles, loc="upper left", bbox_to_anchor=(1.05, 1))
+        ax.legend(handles=legend_handles, loc="center left", bbox_to_anchor=(1.05, 0.5))
 
         # Display the chart
         if show_plot is True:
